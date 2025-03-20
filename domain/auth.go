@@ -5,6 +5,6 @@ import (
 	"context"
 )
 
-type Auth interface {
+type AuthService interface {
 	Login(ctx context.Context, data dto.AuthRequest) (dto.AuthResponse, error)
 }

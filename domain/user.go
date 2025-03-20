@@ -1,5 +1,7 @@
 package domain
 
+import "context"
+
 type User struct {
 	ID        string     `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 	Email     string     `gorm:"type:varchar(255);unique;not null"`
@@ -9,5 +11,5 @@ type User struct {
 }
 
 type UserRepository interface {
-	FindByEmail(email string) (*User, error)
+	FindByEmail(ctx context.Context, email string) (User, error)
 }

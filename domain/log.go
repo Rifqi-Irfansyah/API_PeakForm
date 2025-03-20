@@ -1,6 +1,9 @@
 package domain
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 type Log struct {
 	ID         uint      `gorm:"primaryKey"`
@@ -13,6 +16,6 @@ type Log struct {
 }
 
 type LogRepository interface {
-	Create(log Log) error
-	FindAll() ([]Log, error)
+	Create(ctx context.Context, log Log) error
+	FindAll(ctx context.Context) ([]Log, error)
 }

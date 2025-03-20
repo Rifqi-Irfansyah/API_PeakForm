@@ -1,9 +1,13 @@
-package API_PeakForm
+package main
 
 import (
 	"api-peak-form/domain"
+	"api-peak-form/internal/api"
 	"api-peak-form/internal/config"
 	"api-peak-form/internal/connection"
+	"api-peak-form/internal/repository"
+	"api-peak-form/internal/service"
+	"github.com/gofiber/fiber/v2"
 	"log"
 )
 
@@ -11,10 +15,31 @@ func main() {
 	cnf := config.Get()
 	dbConnection := connection.GetDatabase(cnf.Database)
 
+	app := fiber.New()
+
+	// Migration seharusnya tidak disini
 	err := dbConnection.AutoMigrate(&domain.User{})
 	if err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}
 	log.Println("Database migrated successfully")
 
+	//jwtMidd := jwtMid.New(jwtMid.Config{
+	//	SigningKey: jwtMid.SigningKey{Key: []byte(cnf.Jwt.Key)},
+	//	ErrorHandler: func(c *fiber.Ctx, err error) error {
+	//		return c.Status(http.StatusUnauthorized).
+	//			JSON(fiber.Map{
+	//				"status":  "error",
+	//				"message": "Invalid token",
+	//			})
+	//	},
+	//})
+
+	uerRepository := repository.NewUserRepository(dbConnection)
+
+	authService := service.NewAuthService(cnf, uerRepository)
+
+	api.NewAuthApi(app, authService)
+
+	_ = app.Listen(cnf.Server.Host + ":" + cnf.Server.Port)
 }
