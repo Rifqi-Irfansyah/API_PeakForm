@@ -1,8 +1,8 @@
 package domain
 
 type Schedule struct {
-	ID        uint `gorm:"primaryKey"`
-	UserID    uint
+	ID        uint       `gorm:"primaryKey"`
+	UserID    uint       `gorm:"not null; foreignKey:UserID"`
 	User      User       `gorm:"foreignKey:UserID"`
 	Day       int        `gorm:"not null; check:day >= 1 AND day <= 7"`
 	Exercises []Exercise `gorm:"many2many:exercise_list"`

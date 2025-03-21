@@ -8,11 +8,12 @@ import (
 type Log struct {
 	ID         uint      `gorm:"primaryKey"`
 	UserID     uint      `gorm:"not null"`
-	ScheduleID uint      `gorm:"not null"`
-	Timestamp  time.Time `gorm:"autoCreateTime"`
-	Status     string    `gorm:"type:varchar(50);not null"`
+	ExerciseID uint      `gorm:"not null"`
+	Timestamp  time.Time `gorm:"not null"`
 	User       User      `gorm:"foreignKey:UserID"`
-	Schedule   Schedule  `gorm:"foreignKey:ScheduleID"`
+	Exercise   Exercise  `gorm:"foreignKey:ExerciseID"`
+	Set        int       `gorm:"not null"`
+	Repetition int       `gorm:"not null"`
 }
 
 type LogRepository interface {
