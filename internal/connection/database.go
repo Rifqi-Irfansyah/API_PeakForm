@@ -2,6 +2,7 @@ package connection
 
 import (
 	"api-peak-form/internal/config"
+	"api-peak-form/internal/connection/migration"
 	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -31,6 +32,12 @@ func GetDatabase(conf config.Database) *gorm.DB {
 	sqlDB.SetMaxOpenConns(25)
 	sqlDB.SetMaxIdleConns(10)
 	sqlDB.SetConnMaxLifetime(0)
+
+	if err := migration.Migrate(db); err != nil {
+		log.Fatal("Migration error:", err)
+	}
+
+	log.Println("Database connection established!")
 
 	return db
 }
