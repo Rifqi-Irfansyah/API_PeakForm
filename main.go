@@ -27,10 +27,13 @@ func main() {
 	//})
 
 	uerRepository := repository.NewUserRepository(dbConnection)
+	logRepository := repository.NewLogRepository(dbConnection)
 
 	authService := service.NewAuthService(cnf, uerRepository)
+	logService := service.NewLogService(logRepository)
 
 	api.NewAuthApi(app, authService)
+	api.NewLogApi(app, logService)
 
 	_ = app.Listen(cnf.Server.Host + ":" + cnf.Server.Port)
 }

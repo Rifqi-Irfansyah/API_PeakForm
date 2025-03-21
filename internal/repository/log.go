@@ -11,7 +11,7 @@ type logRepository struct {
 	db *gorm.DB
 }
 
-func NewLog(db *gorm.DB) domain.LogRepository {
+func NewLogRepository(db *gorm.DB) domain.LogRepository {
 	return &logRepository{db: db}
 }
 
