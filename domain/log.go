@@ -17,5 +17,10 @@ type Log struct {
 
 type LogRepository interface {
 	Create(ctx context.Context, log Log) error
-	FindAll(ctx context.Context) ([]Log, error)
+	FindByUserID(ctx context.Context, userID uint) ([]Log, error)
+}
+
+type LogService interface {
+	Create(ctx context.Context, log Log) error
+	FindByUserID(ctx context.Context, userID uint) ([]Log, error)
 }
