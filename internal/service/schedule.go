@@ -10,10 +10,42 @@ import (
 
 type scheduleService struct {
 	scheduleRepository domain.ScheduleRepository
+	exerciselistRepository domain.ScheduleRepository
 }
 
 func NewScheduleService(scheduleRepository domain.ScheduleRepository) domain.ScheduleService {
 	return &scheduleService{scheduleRepository: scheduleRepository}
+}
+
+func (s *scheduleService) Create(ctx context.Context, req dto.CreateScheduleRequest) error {
+	var schedule domain.Schedule
+	result := s.scheduleRepository.FindByUIDAndDay(ctx, req.UID, req.Day, &schedule)
+
+	if result == nil {
+		schedule = domain.Schedule{
+			UserID:    req.UID,
+			Day:       req.Day,
+			ExerciseID: req.ExerciseID,
+		}
+
+		if err := s.scheduleRepository.Save(ctx, &schedule); err != nil {
+			return err
+		}
+	}
+
+	exerciselist := domain.ExerciseList{
+		ScheduleID:	schedule.ID,
+		ExerciseID: req.ExerciseID,
+		Set: 		uint(req.Set),
+		Repetition: uint(req.Repetition),
+	}
+
+	err := s.scheduleRepository.SaveExercise(ctx, &exerciselist)
+	if err != nil {
+		return err
+	}
+	
+	return nil
 }
 
 func (s scheduleService) FindByUID(ctx context.Context, uid string) (dto.ScheduleListResponse, error) {

@@ -1,5 +1,13 @@
 package dto
 
+type CreateScheduleRequest struct{
+	UID 		string 	`json:"id_user" form:"id_user"`
+	ExerciseID 	uint	`json:"id_exercise" form:"id_exercise"`
+	Day			int 	`json:"day"`
+	Set			int		`json:"set"`
+	Repetition 	int 	`json:"repetition"` 	
+}
+
 type ScheduleRequest struct {
 	UID string `json:"id"`
 }

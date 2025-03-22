@@ -8,11 +8,16 @@ import (
 )
 
 func Migrate(dbConnection *gorm.DB) error {
+	err := dbConnection.Migrator().DropTable(&domain.User{}, &domain.Log{}, &domain.Exercise{}, &domain.Schedule{}, &domain.ExerciseList{})
+	if err != nil {
+		return fmt.Errorf("failed to drop tables: %w", err)
+	}
+
 	if err := createEnums(dbConnection); err != nil {
 		log.Printf("Warning: Failed to create enums: %v", err)
 	}
 
-	err := dbConnection.AutoMigrate(&domain.User{}, &domain.Log{}, &domain.Exercise{}, &domain.Schedule{})
+	err = dbConnection.AutoMigrate(&domain.User{}, &domain.Log{}, &domain.Exercise{}, &domain.Schedule{}, &domain.ExerciseList{}, &domain.UserSchedule{})
 	if err != nil {
 		return fmt.Errorf("failed to migrate database: %w", err)
 	}
