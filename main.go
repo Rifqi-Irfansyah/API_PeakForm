@@ -4,8 +4,10 @@ import (
 	"api-peak-form/internal/api"
 	"api-peak-form/internal/config"
 	"api-peak-form/internal/connection"
+	"api-peak-form/internal/connection/datadumy"
 	"api-peak-form/internal/repository"
 	"api-peak-form/internal/service"
+
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -25,12 +27,18 @@ func main() {
 	//			})
 	//	},
 	//})
+	datadumy.AddExercise(dbConnection)
+	datadumy.AddSchedules(dbConnection)
+	datadumy.AddDefaultUser(dbConnection)
 
 	uerRepository := repository.NewUserRepository(dbConnection)
+	scheduleRepository := repository.NewSchedule(dbConnection)
 
 	authService := service.NewAuthService(cnf, uerRepository)
+	scheduleService := service.NewScheduleService(scheduleRepository)
 
 	api.NewAuthApi(app, authService)
+	api.NewScheduleApi(app, scheduleService)
 
 	_ = app.Listen(cnf.Server.Host + ":" + cnf.Server.Port)
 }
