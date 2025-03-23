@@ -4,6 +4,7 @@ import (
 	"api-peak-form/domain"
 	"api-peak-form/dto"
 	"context"
+	"errors"
 	"github.com/gofiber/fiber/v2"
 	"net/http"
 	"time"
@@ -19,6 +20,7 @@ func NewAuthApi(app *fiber.App, authService domain.AuthService) {
 	}
 
 	app.Post("/auth", aa.Login)
+	app.Post("/register", aa.Register)
 }
 
 func (aa authApi) Login(ctx *fiber.Ctx) error {
@@ -29,19 +31,63 @@ func (aa authApi) Login(ctx *fiber.Ctx) error {
 	if err := ctx.BodyParser(&req); err != nil {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
 			"status":  "error",
-			"message": err.Error(),
+			"message": "Invalid request body: " + err.Error(),
+		})
+	}
+	if req.Email == "" || req.Password == "" {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Email and password are required",
 		})
 	}
 	res, err := aa.authService.Login(c, req)
 	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			return ctx.Status(http.StatusRequestTimeout).JSON(fiber.Map{
+				"status":  "error",
+				"message": "Request timed out",
+			})
+		}
 		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"status":  "error",
-			"message": err.Error(),
+			"message": "Login failed: " + err.Error(),
 		})
 	}
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
 		"status":  "success",
-		"message": "Login success",
+		"message": "Login successful",
 		"data":    res,
+	})
+}
+
+func (aa authApi) Register(ctx *fiber.Ctx) error {
+	c, cancel := context.WithTimeout(ctx.Context(), 10*time.Second)
+	defer cancel()
+
+	var req dto.RegisterRequest
+	if err := ctx.BodyParser(&req); err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Invalid request body: " + err.Error(),
+		})
+	}
+	if req.Name == "" || req.Email == "" || req.Password == "" {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"status": "error",
+		})
+	}
+	err := aa.authService.Register(c, req)
+	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			return ctx.Status(http.StatusRequestTimeout).JSON(fiber.Map{
+				"status":  "error",
+				"message": "Request timed out",
+			})
+		}
+	}
+
+	return ctx.Status(http.StatusOK).JSON(fiber.Map{
+		"status":  "success",
+		"message": "Registration successful",
 	})
 }
