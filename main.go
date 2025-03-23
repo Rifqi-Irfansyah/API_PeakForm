@@ -30,7 +30,6 @@ func main() {
 	datadumy.AddDefaultUser(dbConnection)
 	datadumy.AddExercise(dbConnection)
 	datadumy.AddSchedules(dbConnection)
-	datadumy.AddUserSchedules(dbConnection)
 
 	uerRepository := repository.NewUserRepository(dbConnection)
 	scheduleRepository := repository.NewSchedule(dbConnection)

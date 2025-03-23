@@ -84,6 +84,7 @@ func (s scheduleService) FindByUID(ctx context.Context, uid string) (dto.Schedul
 
 		scheduleResponses = append(scheduleResponses, dto.ScheduleResponse{
 			ID:        	schedule.ID,
+			UID:		schedule.UID,
 			Day:       	schedule.Day,
 			Type:		string(schedule.Type),
 			Exercises: 	exerciseResponses,
