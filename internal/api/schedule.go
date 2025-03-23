@@ -6,6 +6,7 @@ import (
 	"api-peak-form/internal/util"
 	"context"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -16,12 +17,13 @@ type scheduleApi struct {
 }
 
 func NewScheduleApi(app *fiber.App, scheduleService domain.ScheduleService) {
-	aa := scheduleApi{
+	sa := scheduleApi{
 		scheduleService: scheduleService,
 	}
 
-	app.Get("/schedule", aa.FindByUID)
-	app.Post("/schedule", aa.Create)
+	app.Get("/schedule", sa.FindByUID)
+	app.Post("/schedule", sa.Create)
+	app.Delete("/schedule", sa.Delete)
 }
 
 func (sa scheduleApi) Create(ctx *fiber.Ctx) error {
@@ -52,7 +54,7 @@ func (sa scheduleApi) Create(ctx *fiber.Ctx) error {
 	})
 }
 
-func (aa scheduleApi) FindByUID(ctx *fiber.Ctx) error {
+func (sa scheduleApi) FindByUID(ctx *fiber.Ctx) error {
 	_, cancel := context.WithTimeout(ctx.Context(), 10*time.Second)
 	defer cancel()
 
@@ -63,7 +65,7 @@ func (aa scheduleApi) FindByUID(ctx *fiber.Ctx) error {
 			"message": err.Error(),
 		})
 	}
-	res, err := aa.scheduleService.FindByUID(ctx.Context(), req.UID)
+	res, err := sa.scheduleService.FindByUID(ctx.Context(), req.UID)
 	if err != nil {
 		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"status":  "error",
@@ -74,5 +76,31 @@ func (aa scheduleApi) FindByUID(ctx *fiber.Ctx) error {
 		"status":  "success",
 		"message": "Schedule Founded",
 		"data":    res,
+	})
+}
+
+func (sa scheduleApi) Delete(ctx *fiber.Ctx) error {
+	c, cancel := context.WithTimeout(ctx.Context(), 10*time.Second)
+	defer cancel()
+
+	id := ctx.Query("id_schedule")
+	id_user := ctx.Query("id_user")
+
+	idUintSchedule, err := strconv.ParseUint(id, 10, 64)
+	if err != nil {
+		println("Error saat membaca ID API Req: ", err.Error())
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid ID format",
+		})
+	}
+
+	err = sa.scheduleService.Delete(c, id_user, uint(idUintSchedule))
+	if err != nil {
+		return ctx.Status(http.StatusNotFound).JSON(fiber.Map{"error": "schedule not found"})
+	}
+
+	return ctx.Status(http.StatusOK).JSON(fiber.Map{
+		"success": true,
+		"message": "schedule deleted successfully",
 	})
 }

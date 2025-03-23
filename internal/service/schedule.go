@@ -5,12 +5,12 @@ import (
 	"api-peak-form/dto"
 	"context"
 	"errors"
+	"fmt"
 	"log"
 )
 
 type scheduleService struct {
 	scheduleRepository domain.ScheduleRepository
-	exerciselistRepository domain.ScheduleRepository
 }
 
 func NewScheduleService(scheduleRepository domain.ScheduleRepository) domain.ScheduleService {
@@ -23,12 +23,15 @@ func (s *scheduleService) Create(ctx context.Context, req dto.CreateScheduleRequ
 
 	if result == nil {
 		schedule = domain.Schedule{
-			UserID:    req.UID,
+			Type:	   domain.ExerciseType(req.Type),
 			Day:       req.Day,
-			ExerciseID: req.ExerciseID,
 		}
 
 		if err := s.scheduleRepository.Save(ctx, &schedule); err != nil {
+			return err
+		}
+
+		if err := s.scheduleRepository.AddScheduleToUser(ctx, req.UID, schedule.ID); err != nil{
 			return err
 		}
 	}
@@ -89,4 +92,12 @@ func (s scheduleService) FindByUID(ctx context.Context, uid string) (dto.Schedul
 	return dto.ScheduleListResponse{
 		Schedules: scheduleResponses,
 	}, nil
+}
+
+func (s *scheduleService) Delete(ctx context.Context, userID string, scheduleID uint) error {
+    err := s.scheduleRepository.DeleteUserSchedule(ctx, userID, scheduleID)
+    if err != nil {
+        return fmt.Errorf("failed to delete schedule: %w", err)
+    }
+    return nil
 }
