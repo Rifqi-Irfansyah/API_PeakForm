@@ -3,6 +3,7 @@ package repository
 import (
 	"api-peak-form/domain"
 	"context"
+	"fmt"
 
 	"gorm.io/gorm"
 )
@@ -30,10 +31,26 @@ func (r *Schedule) FindByUID(ctx context.Context, ID string) ([]domain.Schedule,
 	return user.Schedules, nil
 }
 
-func (sc *Schedule) FindByUIDAndDay(ctx context.Context, uid string, day int, schedule *domain.Schedule) *domain.Schedule {
-	if err := sc.db.WithContext(ctx).Where("user_id = ? AND day = ?", uid, day).First(schedule).Error; err != nil {
-		return nil 
-	}
+func (sc *Schedule) FindByUIDDayType(ctx context.Context, uid string, day int, typee string, schedule *domain.Schedule) *domain.Schedule {
+	var idSchedules []uint
+
+	if err := sc.db.WithContext(ctx).Table("user_schedules").Where("user_id = ?", uid).Pluck("schedule_id", &idSchedules).Error; err != nil {
+		fmt.Errorf("failed to fetch schedule IDs: %w", err)
+        return nil
+    }
+
+    // Jika tidak ada schedule_id yang ditemukan, kembalikan error
+    if len(idSchedules) == 0 {
+		fmt.Errorf("no schedules found for user %s", uid)
+        return nil
+    }
+
+    // Query ke tabel schedules berdasarkan schedule_id, day, dan type
+    if err := sc.db.WithContext(ctx).Where("id IN (?) AND day = ? AND type = ?", idSchedules, day, typee).First(schedule).Error; err != nil {
+        fmt.Errorf("failed to fetch schedule: %w", err)
+		return nil
+    }
+
 	return schedule
 }
 

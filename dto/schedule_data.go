@@ -29,7 +29,8 @@ type ExerciseResponse struct {
 }
 
 type ScheduleResponse struct {
-	ID        uint      `json:"id"`
-	Day       int         `json:"day"`
+	ID        	uint      	`json:"id"`
+	Day       	int         `json:"day"`
+	Type		string		`json:"type"`
 	Exercises []ExerciseResponse 	  `json:"exercise"`
 }

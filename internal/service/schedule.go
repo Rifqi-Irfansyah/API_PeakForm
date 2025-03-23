@@ -19,7 +19,7 @@ func NewScheduleService(scheduleRepository domain.ScheduleRepository) domain.Sch
 
 func (s *scheduleService) Create(ctx context.Context, req dto.CreateScheduleRequest) error {
 	var schedule domain.Schedule
-	result := s.scheduleRepository.FindByUIDAndDay(ctx, req.UID, req.Day, &schedule)
+	result := s.scheduleRepository.FindByUIDDayType(ctx, req.UID, req.Day, req.Type, &schedule)
 
 	if result == nil {
 		schedule = domain.Schedule{
@@ -83,9 +83,10 @@ func (s scheduleService) FindByUID(ctx context.Context, uid string) (dto.Schedul
 		}
 
 		scheduleResponses = append(scheduleResponses, dto.ScheduleResponse{
-			ID:        schedule.ID,
-			Day:       schedule.Day,
-			Exercises: exerciseResponses,
+			ID:        	schedule.ID,
+			Day:       	schedule.Day,
+			Type:		string(schedule.Type),
+			Exercises: 	exerciseResponses,
 		})
 	}
 
