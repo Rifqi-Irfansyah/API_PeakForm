@@ -32,5 +32,5 @@ type ScheduleService interface {
 	// Save(ctx context.Context, schedule *Schedule) error
 	Create(ctx context.Context, req dto.CreateScheduleRequest) error
 	FindByUID(ctx context.Context, uid string) (dto.ScheduleListResponse, error)
-	Delete(ctx context.Context, userID string, scheduleID uint) error
+	DeleteSchedule(ctx context.Context, userID string, scheduleID uint) error
 }

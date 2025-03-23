@@ -94,7 +94,7 @@ func (sa scheduleApi) Delete(ctx *fiber.Ctx) error {
 		})
 	}
 
-	err = sa.scheduleService.Delete(c, id_user, uint(idUintSchedule))
+	err = sa.scheduleService.DeleteSchedule(c, id_user, uint(idUintSchedule))
 	if err != nil {
 		return ctx.Status(http.StatusNotFound).JSON(fiber.Map{"error": "schedule not found"})
 	}

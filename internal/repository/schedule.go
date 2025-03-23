@@ -3,16 +3,11 @@ package repository
 import (
 	"api-peak-form/domain"
 	"context"
-	"fmt"
 
 	"gorm.io/gorm"
 )
 
 type Schedule struct {
-	db *gorm.DB
-}
-
-type User struct {
 	db *gorm.DB
 }
 
@@ -70,6 +65,12 @@ func (sc *Schedule) AddScheduleToUser(ctx context.Context, userID string, schedu
 }
 
 func (sc *Schedule) Delete(ctx context.Context, id uint) *gorm.DB {
+	var count int64
+	sc.db.WithContext(ctx).Table("user_schedules").Where("schedule_id = ?", id).Count(&count)
+
+	if count > 0 {
+		return &gorm.DB{}
+	}
 	return sc.db.WithContext(ctx).Delete(&domain.Schedule{}, id)
 }
 
@@ -94,7 +95,7 @@ func (sc *Schedule) DeleteUserSchedule(ctx context.Context, userID string, sched
     }
 
     if result.RowsAffected == 0 {
-        return fmt.Errorf("no record found for user_id %s and schedule_id %d", userID, scheduleID)
+        return result.Error
     }
 
     return nil

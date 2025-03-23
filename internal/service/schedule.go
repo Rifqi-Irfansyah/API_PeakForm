@@ -94,10 +94,15 @@ func (s scheduleService) FindByUID(ctx context.Context, uid string) (dto.Schedul
 	}, nil
 }
 
-func (s *scheduleService) Delete(ctx context.Context, userID string, scheduleID uint) error {
+func (s *scheduleService) DeleteSchedule(ctx context.Context, userID string, scheduleID uint) error {
     err := s.scheduleRepository.DeleteUserSchedule(ctx, userID, scheduleID)
     if err != nil {
         return fmt.Errorf("failed to delete schedule: %w", err)
     }
+
+	result := s.scheduleRepository.Delete(ctx, scheduleID)
+	if result.Error != nil {
+		return errors.New(result.Error.Error())
+	}
     return nil
 }
