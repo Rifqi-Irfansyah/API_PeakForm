@@ -19,10 +19,7 @@ func NewSchedule(db *gorm.DB) *Schedule {
 func (r *Schedule) FindByUID(ctx context.Context, ID string) ([]domain.Schedule, error) {
 	var user domain.User
 
-	err := r.db.WithContext(ctx).
-		Preload("Schedules.Exercises"). // Preload relasi ke Exercises juga (jika ada)
-		Where("id = ?", ID).
-		First(&user).Error
+	err := r.db.WithContext(ctx).Preload("Schedules.Exercises").Where("id = ?", ID).First(&user).Error
 
 	if err != nil {
 		return nil, err
@@ -35,19 +32,14 @@ func (sc *Schedule) FindByUIDDayType(ctx context.Context, uid string, day int, t
 	var idSchedules []uint
 
 	if err := sc.db.WithContext(ctx).Table("user_schedules").Where("user_id = ?", uid).Pluck("schedule_id", &idSchedules).Error; err != nil {
-		fmt.Errorf("failed to fetch schedule IDs: %w", err)
         return nil
     }
 
-    // Jika tidak ada schedule_id yang ditemukan, kembalikan error
     if len(idSchedules) == 0 {
-		fmt.Errorf("no schedules found for user %s", uid)
         return nil
     }
 
-    // Query ke tabel schedules berdasarkan schedule_id, day, dan type
     if err := sc.db.WithContext(ctx).Where("id IN (?) AND day = ? AND type = ?", idSchedules, day, typee).First(schedule).Error; err != nil {
-        fmt.Errorf("failed to fetch schedule: %w", err)
 		return nil
     }
 
@@ -91,8 +83,19 @@ func (sc *Schedule) Delete(ctx context.Context, id uint) *gorm.DB {
 	return sc.db.WithContext(ctx).Delete(&domain.Schedule{}, id)
 }
 
-func (sc *Schedule) DeleteExercise(ctx context.Context, id uint) *gorm.DB {
-	return sc.db.WithContext(ctx).Delete(&domain.ExerciseList{}, id)
+func (sc *Schedule) DeleteExercise(ctx context.Context, id uint, id_exercise int) *gorm.DB {
+	result := sc.db.WithContext(ctx).Table("exercise_list").Where("schedule_id = ? AND exercise_id = ?", id, id_exercise).Delete(nil)
+
+	if result.Error != nil {
+        fmt.Printf("Gagal: %v\n", result.Error)
+        return result
+    }
+
+    if result.RowsAffected == 0 {
+		return result
+    }
+
+	return nil
 }
 
 func (sc *Schedule) DeleteUserSchedule(ctx context.Context, userID string, scheduleID uint) error {
@@ -108,12 +111,25 @@ func (sc *Schedule) DeleteUserSchedule(ctx context.Context, userID string, sched
 
     result := sc.db.WithContext(ctx).Where("user_id = ? AND schedule_id = ?", userID, scheduleID).Delete(&userSchedule)
     if result.Error != nil {
-        return result.Error
+        return fmt.Errorf("Error while delete data", result.Error)
     }
 
     if result.RowsAffected == 0 {
-        return result.Error
+        return fmt.Errorf("Schedule Not Found")
     }
 
     return nil
+}
+
+func (r *Schedule) CountExercisesByScheduleID(ctx context.Context, id uint) int64 {
+    var count int64
+    result := r.db.WithContext(ctx).
+        Table("exercise_list").
+        Where("schedule_id = ?", id).
+        Count(&count)
+
+    if result.Error != nil {
+        return 0
+    }
+    return count
 }

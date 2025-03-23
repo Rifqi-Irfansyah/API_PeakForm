@@ -107,3 +107,21 @@ func (s *scheduleService) DeleteSchedule(ctx context.Context, userID string, sch
 	}
     return nil
 }
+
+func (s *scheduleService) DeleteExerciseSchedule(ctx context.Context, id uint, id_exercise int) error {
+    err := s.scheduleRepository.DeleteExercise(ctx, id, id_exercise)
+    if err != nil {
+        return fmt.Errorf("exercise schedule not found")
+    }
+
+	count := s.scheduleRepository.CountExercisesByScheduleID(ctx, id)
+    if count != 0 {
+        return fmt.Errorf("exercise in used on others")
+    }
+
+	result := s.scheduleRepository.Delete(ctx, id)
+	if result.Error != nil {
+		return errors.New(result.Error.Error())
+	}
+    return nil
+}

@@ -23,13 +23,14 @@ type ScheduleRepository interface {
 	FindByUID(ctx context.Context, ID string) ([]Schedule, error) 
 	FindByUIDDayType(ctx context.Context, uid string, day int, typee string, schedule *Schedule) *Schedule
 	Delete(ctx context.Context, id uint) *gorm.DB
-	DeleteExercise(ctx context.Context, id uint) *gorm.DB
+	DeleteExercise(ctx context.Context, id uint, id_exercise int) *gorm.DB
 	DeleteUserSchedule(ctx context.Context, userID string, scheduleID uint) error
-
+	CountExercisesByScheduleID(ctx context.Context, id uint) int64
 }
 
 type ScheduleService interface {
 	Create(ctx context.Context, req dto.CreateScheduleRequest) error
 	FindByUID(ctx context.Context, uid string) (dto.ScheduleListResponse, error)
 	DeleteSchedule(ctx context.Context, userID string, scheduleID uint) error
+	DeleteExerciseSchedule(ctx context.Context, id uint, id_exercise int) error
 }
