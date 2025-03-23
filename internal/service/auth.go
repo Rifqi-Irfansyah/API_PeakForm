@@ -25,27 +25,27 @@ func NewAuthService(cfg *config.Config, userRepository domain.UserRepository) do
 func (a authService) Login(ctx context.Context, data dto.AuthRequest) (dto.AuthResponse, error) {
 	user, err := a.userRepository.FindByEmail(ctx, data.Email)
 	if err != nil {
-		log.Println("Error saat mencari user:", err)
+		log.Println("Error finding user:", err)
 		return dto.AuthResponse{}, err
 	}
 
 	if user.ID == "" {
-		log.Println("User tidak ditemukan atau email salah:", data.Email)
+		log.Println("User not found or incorrect email:", data.Email)
 		return dto.AuthResponse{}, errors.New("username or password is wrong")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(data.Password)); err != nil {
-		log.Println("Password tidak cocok untuk user:", data.Email)
+		log.Println("Password does not match for user:", data.Email)
 		return dto.AuthResponse{}, errors.New("username or password is wrong")
 	}
 
 	tokenStr, err := generateJWT(user.ID, a.cfg.Jwt.Key, a.cfg.Jwt.Exp)
 	if err != nil {
-		log.Println("Gagal generate JWT untuk user:", data.Email, "error:", err)
+		log.Println("Failed to generate JWT for user:", data.Email, "error:", err)
 		return dto.AuthResponse{}, errors.New("failed to generate token")
 	}
 
-	log.Println("Login berhasil untuk user:", data.Email)
+	log.Println("Login successful for user:", data.Email)
 	return dto.AuthResponse{Token: tokenStr}, nil
 }
 
