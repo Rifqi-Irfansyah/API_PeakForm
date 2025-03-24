@@ -23,9 +23,9 @@ func (s *scheduleService) Create(ctx context.Context, req dto.CreateScheduleRequ
 
 	if result == nil {
 		schedule = domain.Schedule{
-			UID:	req.UID,
-			Type:	domain.ExerciseType(req.Type),
-			Day: 	req.Day,
+			UID:  req.UID,
+			Type: domain.ExerciseType(req.Type),
+			Day:  req.Day,
 		}
 
 		if err := s.scheduleRepository.Save(ctx, &schedule); err != nil {
@@ -34,9 +34,9 @@ func (s *scheduleService) Create(ctx context.Context, req dto.CreateScheduleRequ
 	}
 
 	exerciselist := domain.ExerciseList{
-		ScheduleID:	schedule.ID,
+		ScheduleID: schedule.ID,
 		ExerciseID: req.ExerciseID,
-		Set: 		uint(req.Set),
+		Set:        uint(req.Set),
 		Repetition: uint(req.Repetition),
 	}
 
@@ -44,7 +44,7 @@ func (s *scheduleService) Create(ctx context.Context, req dto.CreateScheduleRequ
 	if err != nil {
 		return err
 	}
-	
+
 	return nil
 }
 
@@ -68,22 +68,22 @@ func (s scheduleService) FindByUID(ctx context.Context, uid string) (dto.Schedul
 		var exerciseResponses []dto.ExerciseResponse
 		for _, ex := range schedule.Exercises {
 			exerciseResponses = append(exerciseResponses, dto.ExerciseResponse{
-				ID:           	ex.ID,
-				Name:         	ex.Name,
-				Type:         	string(ex.Type),
-				Muscle:       	string(ex.Muscle),
-				Equipment:    	string(ex.Equipment),
-				Difficulty:   	string(ex.Difficulty),
-				Instructions: 	ex.Instructions,
-				Gif:          	ex.Gif,
+				ID:           ex.ID,
+				Name:         ex.Name,
+				Type:         string(ex.Type),
+				Muscle:       string(ex.Muscle),
+				Equipment:    string(ex.Equipment),
+				Difficulty:   string(ex.Difficulty),
+				Instructions: ex.Instructions,
+				Gif:          ex.Gif,
 			})
 		}
 
 		scheduleResponses = append(scheduleResponses, dto.ScheduleResponse{
-			ID:        	schedule.ID,
-			Day:       	schedule.Day,
-			Type:		string(schedule.Type),
-			Exercises: 	exerciseResponses,
+			ID:        schedule.ID,
+			Day:       schedule.Day,
+			Type:      string(schedule.Type),
+			Exercises: exerciseResponses,
 		})
 	}
 
@@ -97,19 +97,24 @@ func (s *scheduleService) DeleteSchedule(ctx context.Context, userID string, sch
 	if result.Error != nil {
 		return errors.New(result.Error.Error())
 	}
-    return nil
+
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("schedule not found")
+	}
+
+	return nil
 }
 
 func (s *scheduleService) DeleteExerciseSchedule(ctx context.Context, id uint, id_exercise int) error {
-    err := s.scheduleRepository.DeleteExercise(ctx, id, id_exercise)
-    if err != nil {
-        return fmt.Errorf("exercise schedule not found")
-    }
+	err := s.scheduleRepository.DeleteExercise(ctx, id, id_exercise)
+	if err != nil {
+		return fmt.Errorf("exercise schedule not found")
+	}
 
 	count := s.scheduleRepository.CountExercisesByScheduleID(ctx, id)
-    if count == 0 {
+	if count == 0 {
 		s.scheduleRepository.Delete(ctx, id)
-    }
+	}
 
-    return nil
+	return nil
 }
