@@ -25,14 +25,21 @@ func main() {
 	//			})
 	//	},
 	//})
+	datadumy.AddDefaultUser(dbConnection)
+	datadumy.AddExercise(dbConnection)
+	datadumy.AddSchedules(dbConnection)
+	datadumy.AddUserSchedules(dbConnection)
 
 	uerRepository := repository.NewUserRepository(dbConnection)
+	scheduleRepository := repository.NewSchedule(dbConnection)
 	logRepository := repository.NewLogRepository(dbConnection)
 
 	authService := service.NewAuthService(cnf, uerRepository)
+	scheduleService := service.NewScheduleService(scheduleRepository)
 	logService := service.NewLogService(logRepository)
 
 	api.NewAuthApi(app, authService)
+	api.NewScheduleApi(app, scheduleService)
 	api.NewLogApi(app, logService)
 
 	_ = app.Listen(cnf.Server.Host + ":" + cnf.Server.Port)

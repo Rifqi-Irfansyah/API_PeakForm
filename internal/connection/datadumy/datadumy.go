@@ -1,0 +1,57 @@
+package datadumy
+
+import (
+	"api-peak-form/domain"
+	"log"
+
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
+)
+
+func AddDefaultUser(db *gorm.DB) {
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("admin123"), bcrypt.DefaultCost)
+	
+	// Buat admin user
+	admin := domain.User{
+		Email:    "admin2@example.com",
+		Name:     "Administrator",
+		Password: string(hashedPassword),
+	}
+
+	// Simpan ke database
+	db.Create(&admin)
+	log.Println("Admin user created: admin@example.com")
+
+}
+
+func AddExercise(db *gorm.DB) {
+	// Data dummy untuk tabel Exercise
+	exercises := []domain.Exercise{
+		{
+			Name:         "Bicep Curl",
+			Type:         "strength",
+			Muscle:       "biceps",
+			Equipment:    "dumbbell",
+			Difficulty:   "intermediate",
+			Instructions: "Pegang dumbbell di kedua tangan, angkat ke arah bahu sambil mempertahankan siku tetap di sisi tubuh, lalu turunkan perlahan.",
+			Gif:          "https://example.com/bicepcurl.gif",
+		},
+		{
+			Name:         "Deadlift",
+			Type:         "strength",
+			Muscle:       "abdominals",
+			Equipment:    "dumbbell",
+			Difficulty:   "intermediate",
+			Instructions: "Berdiri dengan kaki selebar bahu, pegang barbell dengan genggaman overhand, angkat ke atas dengan menggunakan pinggul dan punggung bawah.",
+			Gif:          "https://example.com/deadlift.gif",
+		},
+	}
+
+	for _, exercise := range exercises {
+		if err := db.Create(&exercise).Error; err != nil {
+			log.Println("Gagal menambahkan data exercise:", err)
+		} else {
+			log.Println("Exercise ditambahkan:", exercise.Name)
+		}
+	}
+}

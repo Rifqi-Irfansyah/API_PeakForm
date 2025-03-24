@@ -19,6 +19,9 @@ func GetDatabase(conf config.Database) *gorm.DB {
 		conf.Tz,
 	)
 
+	
+
+
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal("Failed to open a DB connection: ", err.Error())

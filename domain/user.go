@@ -7,9 +7,10 @@ type User struct {
 	Email     string     `gorm:"type:varchar(255);unique;not null"`
 	Name      string     `gorm:"type:varchar(320);not null"`
 	Password  string     `gorm:"type:char(60);not null"`
-	Schedules []Schedule `gorm:"many2many:schedule_user"`
+	Schedules []Schedule `gorm:"many2many:user_schedules"`
 }
 
 type UserRepository interface {
 	FindByEmail(ctx context.Context, email string) (User, error)
+	Save(ctx context.Context, user User) error
 }
