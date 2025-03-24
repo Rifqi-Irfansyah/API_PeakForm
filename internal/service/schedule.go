@@ -23,15 +23,12 @@ func (s *scheduleService) Create(ctx context.Context, req dto.CreateScheduleRequ
 
 	if result == nil {
 		schedule = domain.Schedule{
-			Type:	   domain.ExerciseType(req.Type),
-			Day:       req.Day,
+			UID:	req.UID,
+			Type:	domain.ExerciseType(req.Type),
+			Day: 	req.Day,
 		}
 
 		if err := s.scheduleRepository.Save(ctx, &schedule); err != nil {
-			return err
-		}
-
-		if err := s.scheduleRepository.AddScheduleToUser(ctx, req.UID, schedule.ID); err != nil{
 			return err
 		}
 	}
@@ -71,20 +68,19 @@ func (s scheduleService) FindByUID(ctx context.Context, uid string) (dto.Schedul
 		var exerciseResponses []dto.ExerciseResponse
 		for _, ex := range schedule.Exercises {
 			exerciseResponses = append(exerciseResponses, dto.ExerciseResponse{
-				ID:           ex.ID,
-				Name:         ex.Name,
-				Type:         string(ex.Type),
-				Muscle:       string(ex.Muscle),
-				Equipment:    string(ex.Equipment),
-				Difficulty:   string(ex.Difficulty),
-				Instructions: ex.Instructions,
-				Gif:          ex.Gif,
+				ID:           	ex.ID,
+				Name:         	ex.Name,
+				Type:         	string(ex.Type),
+				Muscle:       	string(ex.Muscle),
+				Equipment:    	string(ex.Equipment),
+				Difficulty:   	string(ex.Difficulty),
+				Instructions: 	ex.Instructions,
+				Gif:          	ex.Gif,
 			})
 		}
 
 		scheduleResponses = append(scheduleResponses, dto.ScheduleResponse{
 			ID:        	schedule.ID,
-			UID:		schedule.UID,
 			Day:       	schedule.Day,
 			Type:		string(schedule.Type),
 			Exercises: 	exerciseResponses,
@@ -97,11 +93,6 @@ func (s scheduleService) FindByUID(ctx context.Context, uid string) (dto.Schedul
 }
 
 func (s *scheduleService) DeleteSchedule(ctx context.Context, userID string, scheduleID uint) error {
-    err := s.scheduleRepository.DeleteUserSchedule(ctx, userID, scheduleID)
-    if err != nil {
-        return fmt.Errorf("failed to delete schedule: %w", err)
-    }
-
 	result := s.scheduleRepository.Delete(ctx, scheduleID)
 	if result.Error != nil {
 		return errors.New(result.Error.Error())
@@ -116,13 +107,9 @@ func (s *scheduleService) DeleteExerciseSchedule(ctx context.Context, id uint, i
     }
 
 	count := s.scheduleRepository.CountExercisesByScheduleID(ctx, id)
-    if count != 0 {
-        return fmt.Errorf("exercise in used on others")
+    if count == 0 {
+		s.scheduleRepository.Delete(ctx, id)
     }
 
-	result := s.scheduleRepository.Delete(ctx, id)
-	if result.Error != nil {
-		return errors.New(result.Error.Error())
-	}
     return nil
 }
