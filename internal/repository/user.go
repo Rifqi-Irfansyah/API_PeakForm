@@ -30,6 +30,20 @@ func (u userRepository) FindByEmail(ctx context.Context, email string) (user dom
 	return user, nil
 }
 
+func (u userRepository) FindByID(ctx context.Context, id string) (user domain.User, err error) {
+	err = u.db.WithContext(ctx).Where("id = ?", id).First(&user).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Println("User not found for id:", id)
+			return user, err
+		}
+		log.Println("Error querying user:", err)
+		return user, err
+	}
+	log.Println("User found:", user.Email)
+	return user, nil
+}
+
 func (u userRepository) Save(ctx context.Context, user domain.User) error {
 	err := u.db.WithContext(ctx).Save(&user).Error
 	if err != nil {

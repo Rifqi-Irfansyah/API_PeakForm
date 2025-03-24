@@ -8,7 +8,7 @@ import (
 
 type Log struct {
 	ID         uint      `gorm:"primaryKey"`
-	UserID     string    `gorm:"not null"`
+	UserID     string    `gorm:"type:uuid;not null"`
 	ExerciseID uint      `gorm:"not null"`
 	Timestamp  time.Time `gorm:"not null"`
 	Exercise   Exercise  `gorm:"foreignKey:ExerciseID"`
@@ -18,10 +18,10 @@ type Log struct {
 
 type LogRepository interface {
 	Create(ctx context.Context, log Log) error
-	FindByUserID(ctx context.Context, userID uint) ([]Log, error)
+	FindByUserID(ctx context.Context, userID string) ([]Log, error)
 }
 
 type LogService interface {
 	Create(ctx context.Context, req dto.LogRequest) error
-	FindByUserID(ctx context.Context, userID uint) ([]Log, error)
+	FindByUserID(ctx context.Context, userID string) ([]Log, error)
 }
