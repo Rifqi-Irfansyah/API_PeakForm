@@ -18,6 +18,8 @@ func NewLogApi(app *fiber.App, logService domain.LogService) {
 
 	app.Post("/logs", la.Create)
 	app.Get("/logs/:id", la.FindByUserID)
+	app.Get("/logs/:id/summary", la.GetUserWorkoutSummary)
+
 }
 
 func (la logApi) Create(ctx *fiber.Ctx) error {
@@ -79,5 +81,27 @@ func (la logApi) FindByUserID(ctx *fiber.Ctx) error {
 
 	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
 		"data": logs,
+	})
+}
+
+func (la logApi) GetUserWorkoutSummary(ctx *fiber.Ctx) error {
+	userID := ctx.Params("id")
+	if userID == "" {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "UserID is required",
+		})
+	}
+
+	summary, err := la.logService.GetUserWorkoutSummary(ctx.Context(), userID)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":   "Failed to fetch workout summary. Please try again later",
+			"details": err.Error(),
+		})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Workout summary fetched successfully",
+		"data":    summary,
 	})
 }

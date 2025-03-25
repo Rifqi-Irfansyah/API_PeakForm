@@ -56,3 +56,45 @@ func (l logService) FindByUserID(ctx context.Context, userID string) ([]domain.L
 
 	return logs, nil
 }
+
+func (l logService) GetUserWorkoutSummary(ctx context.Context, userID string) (dto.WorkoutSummary, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	logs, err := l.logRepository.FindByUserID(ctx, userID)
+	if err != nil {
+		return dto.WorkoutSummary{}, fmt.Errorf("failed to fetch logs for user ID %s: %w", userID, err)
+	}
+
+	var totalWorkoutTime time.Duration
+	var totalExercises, totalSets, totalRepetitions int
+	exerciseCount := make(map[string]int)
+
+	for _, log := range logs {
+		totalWorkoutTime += log.Timestamp.Sub(log.Timestamp)
+		totalExercises++
+		totalSets += log.Set
+		totalRepetitions += log.Repetition
+		exerciseCount[log.Exercise.Name]++
+	}
+
+	var mostFrequentExercise string
+	var maxCount int
+	for exercise, count := range exerciseCount {
+		if count > maxCount {
+			maxCount = count
+			mostFrequentExercise = exercise
+		}
+	}
+
+	averageSessionPerWeek := float64(totalExercises) / 7.0
+
+	return dto.WorkoutSummary{
+		TotalWorkoutTime:      totalWorkoutTime,
+		TotalExercises:        totalExercises,
+		TotalSets:             totalSets,
+		TotalRepetitions:      totalRepetitions,
+		MostFrequentExercise:  mostFrequentExercise,
+		AverageSessionPerWeek: averageSessionPerWeek,
+	}, nil
+}
