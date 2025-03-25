@@ -37,6 +37,6 @@ type ScheduleService interface {
 	Update(ctx context.Context, req dto.UpdateScheduleRequest) error
 	UpdateExerciseSchedule(ctx context.Context, req dto.UpdateExerciseScheduleRequest) error
 	FindByUID(ctx context.Context, uid string) (dto.ScheduleListResponse, error)
-	DeleteSchedule(ctx context.Context, userID string, scheduleID uint) error
+	DeleteSchedule(ctx context.Context, scheduleID uint) error
 	DeleteExerciseSchedule(ctx context.Context, id uint, id_exercise int) error
 }
