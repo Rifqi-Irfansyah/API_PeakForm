@@ -39,3 +39,13 @@ func (u userRepository) Save(ctx context.Context, user domain.User) error {
 	log.Println("User successfully saved:", user.Email)
 	return nil
 }
+
+func (u userRepository) UpdatePassword(ctx context.Context, email string, password string) error {
+	err := u.db.WithContext(ctx).Model(&domain.User{}).Where("email = ?", email).Update("password", password).Error
+	if err != nil {
+		log.Println("Error updating password for email:", email, "error:", err)
+		return err
+	}
+	log.Println("Password successfully updated for email:", email)
+	return nil
+}

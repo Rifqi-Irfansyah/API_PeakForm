@@ -35,9 +35,10 @@ func main() {
 	//	},
 	//})
 
+	otpRepository := repository.NewOTPRepository()
 	uerRepository := repository.NewUserRepository(dbConnection)
 
-	authService := service.NewAuthService(cnf, uerRepository)
+	authService := service.NewAuthService(cnf, uerRepository, otpRepository)
 
 	api.NewAuthApi(app, authService)
 

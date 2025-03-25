@@ -6,19 +6,23 @@ import (
 	"api-peak-form/internal/config"
 	"context"
 	"errors"
+	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
+	"gopkg.in/gomail.v2"
 	"log"
+	"math/rand"
 	"time"
 )
 
 type authService struct {
 	cfg            *config.Config
 	userRepository domain.UserRepository
+	otpRepository  domain.OtpRepository
 }
 
-func NewAuthService(cfg *config.Config, userRepository domain.UserRepository) domain.AuthService {
-	return authService{cfg: cfg, userRepository: userRepository}
+func NewAuthService(cfg *config.Config, userRepository domain.UserRepository, otpRepository domain.OtpRepository) domain.AuthService {
+	return authService{cfg: cfg, userRepository: userRepository, otpRepository: otpRepository}
 }
 
 // Login authenticates a user by verifying the provided credentials and generates a JWT token upon success.
@@ -74,6 +78,122 @@ func (a authService) Register(ctx context.Context, data dto.RegisterRequest) err
 		return errors.New("failed to save user")
 	}
 
+	return nil
+}
+
+func (a authService) ForgotPassword(ctx context.Context, email string) error {
+	// Cek apakah email user ada
+	user, err := a.userRepository.FindByEmail(ctx, email)
+	if err != nil {
+		return errors.New("failed to check user")
+	}
+	if user.ID == "" {
+		return errors.New("email not found")
+	}
+
+	otp := generateOTP()
+
+	err = a.otpRepository.SaveOTP(ctx, email, otp, time.Now().Add(10*time.Minute))
+	if err != nil {
+		return errors.New("failed to save OTP")
+	}
+
+	err = sendOTPByEmail(email, otp)
+	if err != nil {
+		return errors.New(err.Error())
+	}
+
+	return nil
+}
+
+func (a authService) ResetPassword(ctx context.Context, data dto.ResetPasswordRequest) error {
+	valid, err := a.otpRepository.VerifyOTP(ctx, data.Email, data.OTP)
+	if err != nil || !valid {
+		return errors.New("invalid or expired OTP")
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(data.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return errors.New("failed to hash password")
+	}
+
+	err = a.userRepository.UpdatePassword(ctx, data.Email, string(hashedPassword))
+	if err != nil {
+		return errors.New("failed to update password")
+	}
+
+	err = a.otpRepository.DeleteOTP(ctx, data.Email)
+	if err != nil {
+		return errors.New("failed to delete OTP")
+	}
+
+	return nil
+}
+
+func generateOTP() string {
+	return fmt.Sprintf("%06d", rand.Intn(1000000))
+}
+
+func sendOTPByEmail(email, otp string) error {
+	from := "fznrzkxxviii@gmail.com"
+	password := "jxkg vpen cizu xsap"
+	smtpHost := "smtp.gmail.com"
+	smtpPort := 587
+
+	message := fmt.Sprintf(`
+	Subject: 🔐 Reset Password - OTP Verification
+	
+	MIME-version: 1.0;
+	Content-Type: text/html; charset="UTF-8";
+	
+	<html>
+	<head>
+		<style>
+			.container {
+				font-family: Arial, sans-serif;
+				line-height: 1.6;
+				color: #333;
+				text-align: center;
+			}
+			.otp {
+				font-size: 24px;
+				font-weight: bold;
+				color: #007bff;
+			}
+			.footer {
+				margin-top: 20px;
+				font-size: 12px;
+				color: #777;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<h2>🔒 OTP Verification for Password Reset</h2>
+			<p>Hello,</p>
+			<p>We received a request to reset your account password. Use the following OTP code to proceed with the password reset process:</p>
+			<p class="otp">%s</p>
+			<p>Do not share this code with anyone for the security of your account.</p>
+			<p>If you did not request a password reset, please ignore this email.</p>
+			<p class="footer">© 2025 PeakForm. All Rights Reserved.</p>
+		</div>
+	</body>
+	</html>`, otp)
+
+	mailer := gomail.NewMessage()
+	mailer.SetHeader("From", from)
+	mailer.SetHeader("To", email)
+	mailer.SetHeader("Subject", "🔐 Your OTP Code for Password Reset")
+	mailer.SetBody("text/html", message)
+
+	dialer := gomail.NewDialer(smtpHost, smtpPort, from, password)
+
+	if err := dialer.DialAndSend(mailer); err != nil {
+		fmt.Println("Error sending email:", err)
+		return err
+	}
+
+	fmt.Println("OTP sent successfully to", email)
 	return nil
 }
 
