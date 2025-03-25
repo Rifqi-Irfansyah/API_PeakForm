@@ -14,8 +14,8 @@ type Schedule struct {
     Day   int          	`gorm:"not null;check:day >= 1 AND day <= 7"`
 
 	User  User 					`gorm:"foreignKey:UID;references:ID"`
-	Exercises []Exercise		`gorm:"many2many:exercise_list"`
-	ExerciseList []ExerciseList `gorm:"foreignKey:ScheduleID"`
+	Exercises    []Exercise     `gorm:"many2many:exercise_list"`
+	ExerciseList []ExerciseList `gorm:"foreignKey:ScheduleID;constraint:OnDelete:CASCADE;"`
 }
 
 type ScheduleRepository interface {
