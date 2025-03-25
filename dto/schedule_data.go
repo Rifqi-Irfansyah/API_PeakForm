@@ -9,6 +9,19 @@ type CreateScheduleRequest struct{
 	Repetition 	int 	`json:"repetition"` 	
 }
 
+type UpdateScheduleRequest struct{
+	ID			string	`json:"id" form:"id"`
+	Day			int 	`json:"day" form:"day"`
+}
+
+type UpdateExerciseScheduleRequest struct{
+	ID			string	`json:"id" form:"id"`
+	ExerciseID 	uint	`json:"id_exercise" form:"id_exercise"`
+	NExerciseID uint	`json:"new_id_exercise" form:"new_id_exercise"`
+	Set			int		`json:"set"`
+	Repetition 	int 	`json:"repetition"` 	
+}
+
 type ScheduleRequest struct {
 	UID string `json:"id"`
 }
@@ -19,6 +32,8 @@ type ScheduleListResponse struct {
 
 type ExerciseResponse struct {
 	ID           uint   `json:"id"`
+	Set 		 int	`json:"set"`
+	Repetition 	 int	`json:"repetition"`
 	Name         string `json:"name"`
 	Type         string `json:"type"`
 	Muscle       string `json:"muscle"`

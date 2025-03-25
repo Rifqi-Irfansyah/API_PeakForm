@@ -48,6 +48,58 @@ func (s *scheduleService) Create(ctx context.Context, req dto.CreateScheduleRequ
 	return nil
 }
 
+func (s scheduleService) Update(ctx context.Context, req dto.UpdateScheduleRequest) error {
+	persisted, err := s.scheduleRepository.FindById(ctx, req.ID)
+	if err != nil {
+		return err
+	}
+	if persisted.ID == 0 {
+		return errors.New("schedule not found")
+	}
+	persisted.Day = req.Day
+
+	err = s.scheduleRepository.Update(ctx, &persisted)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s scheduleService) UpdateExerciseSchedule(ctx context.Context, req dto.UpdateExerciseScheduleRequest) error {
+	persisted, err := s.scheduleRepository.FindByIdExerciseId(ctx, req.ID, req.ExerciseID)
+	if err != nil {
+		return err
+	}
+	if persisted.ScheduleID == 0 {
+		return errors.New("schedule not found")
+	}
+	if persisted.ExerciseID == 0 {
+		return errors.New("exercise not found")
+	}
+
+	updates := map[string]interface{}{}
+
+    if req.Repetition != 0 {
+        updates["repetition"] = uint(req.Repetition)
+    }
+    if req.Set != 0 {
+        updates["set"] = uint(req.Set)
+    }
+    if req.NExerciseID != 0 {
+        updates["exercise_id"] = uint(req.NExerciseID)
+    }
+
+    if len(updates) == 0 {
+        return nil
+    }
+
+	err = s.scheduleRepository.UpdateExercise(ctx, persisted.ScheduleID, persisted.ExerciseID, updates)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s scheduleService) FindByUID(ctx context.Context, uid string) (dto.ScheduleListResponse, error) {
 	schedules, err := s.scheduleRepository.FindByUID(ctx, uid)
 	if err != nil {
@@ -66,16 +118,18 @@ func (s scheduleService) FindByUID(ctx context.Context, uid string) (dto.Schedul
 
 	for _, schedule := range schedules {
 		var exerciseResponses []dto.ExerciseResponse
-		for _, ex := range schedule.Exercises {
+		for _, exList := range schedule.ExerciseList {
 			exerciseResponses = append(exerciseResponses, dto.ExerciseResponse{
-				ID:           ex.ID,
-				Name:         ex.Name,
-				Type:         string(ex.Type),
-				Muscle:       string(ex.Muscle),
-				Equipment:    string(ex.Equipment),
-				Difficulty:   string(ex.Difficulty),
-				Instructions: ex.Instructions,
-				Gif:          ex.Gif,
+				ID:				exList.Exercise.ID,
+				Set:			int(exList.Set),
+				Repetition:		int(exList.Repetition),
+				Name:			exList.Exercise.Name,
+				Type:			string(exList.Exercise.Type),
+				Muscle:			string(exList.Exercise.Muscle),
+				Equipment:		string(exList.Exercise.Equipment),
+				Difficulty:		string(exList.Exercise.Difficulty),
+				Instructions:	exList.Exercise.Instructions,
+				Gif:			exList.Exercise.Gif,
 			})
 		}
 

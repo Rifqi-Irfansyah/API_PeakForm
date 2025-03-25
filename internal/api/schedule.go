@@ -23,6 +23,8 @@ func NewScheduleApi(app *fiber.App, scheduleService domain.ScheduleService) {
 
 	app.Get("/schedule", sa.FindByUID)
 	app.Post("/schedule", sa.Create)
+	app.Put("/schedule", sa.Update)
+	app.Put("/schedule/exercise", sa.UpdateExerciseList)
 	app.Delete("/schedule", sa.Delete)
 	app.Delete("/schedule/exercise", sa.DeleteExercise)
 }
@@ -50,6 +52,61 @@ func (sa scheduleApi) Create(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.Status(http.StatusCreated).JSON(fiber.Map{
+		"success": true,
+		"data":    req,
+	})
+}
+
+func (sa scheduleApi) Update(ctx *fiber.Ctx) error {
+	c, cancel := context.WithTimeout(ctx.Context(), 10*time.Second)
+	defer cancel()
+
+	var req dto.UpdateScheduleRequest
+	req.ID = ctx.Query("id")
+	req.Day = ctx.QueryInt("day")
+
+	fails := util.Validate(req)
+	if len(fails) > 0 {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error":   "validation failed",
+			"details": fails,
+		})
+	}
+
+	err := sa.scheduleService.Update(c, req)
+	if err != nil {
+		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return ctx.Status(http.StatusOK).JSON(fiber.Map{
+		"success": true,
+		"data":    req,
+	})
+}
+
+func (sa scheduleApi) UpdateExerciseList(ctx *fiber.Ctx) error {
+	c, cancel := context.WithTimeout(ctx.Context(), 10*time.Second)
+	defer cancel()
+
+	var req dto.UpdateExerciseScheduleRequest
+	if err := ctx.BodyParser(&req); err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	fails := util.Validate(req)
+	if len(fails) > 0 {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error":   "validation failed",
+			"details": fails,
+		})
+	}
+
+	err := sa.scheduleService.UpdateExerciseSchedule(c, req)
+	if err != nil {
+		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return ctx.Status(http.StatusOK).JSON(fiber.Map{
 		"success": true,
 		"data":    req,
 	})
