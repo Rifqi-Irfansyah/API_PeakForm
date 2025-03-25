@@ -10,7 +10,10 @@ import (
 	"api-peak-form/internal/service"
 
 	"github.com/gofiber/fiber/v2"
+	jwtMiddleware "github.com/gofiber/jwt/v3"
+
 	"log"
+	"net/http"
 )
 
 func main() {
@@ -19,23 +22,16 @@ func main() {
 
 	app := fiber.New()
 
-	// Migration seharusnya tidak disini
 	err := dbConnection.AutoMigrate(&domain.User{})
 	if err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}
 	log.Println("Database migrated successfully")
 
-	//jwtMidd := jwtMid.New(jwtMid.Config{
-	//	SigningKey: jwtMid.SigningKey{Key: []byte(cnf.Jwt.Key)},
-	//	ErrorHandler: func(c *fiber.Ctx, err error) error {
-	//		return c.Status(http.StatusUnauthorized).
-	//			JSON(fiber.Map{
-	//				"status":  "error",
-	//				"message": "Invalid token",
-	//			})
-	//	},
-	//})
+	jwtMid := jwtMiddleware.New(jwtMiddleware.Config{
+		SigningKey:   []byte(cnf.Jwt.Key),
+		ErrorHandler: jwtError,
+	})
 	datadumy.AddDefaultUser(dbConnection)
 	datadumy.AddExercise(dbConnection)
 	datadumy.AddSchedules(dbConnection)
@@ -47,8 +43,19 @@ func main() {
 	scheduleService := service.NewScheduleService(scheduleRepository)
 	authService := service.NewAuthService(cnf, userRepository, otpRepository)
 
+	// endpoints that do not require a token
 	api.NewAuthApi(app, authService)
+
+	// endpoints that require a token
+	app.Use(jwtMid)
 	api.NewScheduleApi(app, scheduleService)
 
 	_ = app.Listen(cnf.Server.Host + ":" + cnf.Server.Port)
+}
+
+func jwtError(c *fiber.Ctx, _ error) error {
+	return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
+		"status":  "error",
+		"message": "Invalid or expired token",
+	})
 }
