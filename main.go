@@ -1,6 +1,7 @@
 package main
 
 import (
+	"api-peak-form/domain"
 	"api-peak-form/internal/api"
 	"api-peak-form/internal/config"
 	"api-peak-form/internal/connection"
@@ -9,6 +10,7 @@ import (
 	"api-peak-form/internal/service"
 
 	"github.com/gofiber/fiber/v2"
+	"log"
 )
 
 func main() {
@@ -16,6 +18,13 @@ func main() {
 	dbConnection := connection.GetDatabase(cnf.Database)
 
 	app := fiber.New()
+
+	// Migration seharusnya tidak disini
+	err := dbConnection.AutoMigrate(&domain.User{})
+	if err != nil {
+		log.Fatal("Failed to migrate database:", err)
+	}
+	log.Println("Database migrated successfully")
 
 	//jwtMidd := jwtMid.New(jwtMid.Config{
 	//	SigningKey: jwtMid.SigningKey{Key: []byte(cnf.Jwt.Key)},
@@ -32,11 +41,12 @@ func main() {
 	datadumy.AddSchedules(dbConnection)
 	datadumy.AddUserSchedules(dbConnection)
 
+	otpRepository := repository.NewOTPRepository()
 	uerRepository := repository.NewUserRepository(dbConnection)
 	scheduleRepository := repository.NewSchedule(dbConnection)
 
-	authService := service.NewAuthService(cnf, uerRepository)
 	scheduleService := service.NewScheduleService(scheduleRepository)
+	authService := service.NewAuthService(cnf, uerRepository, otpRepository)
 
 	api.NewAuthApi(app, authService)
 	api.NewScheduleApi(app, scheduleService)

@@ -21,6 +21,8 @@ func NewAuthApi(app *fiber.App, authService domain.AuthService) {
 
 	app.Post("/auth", aa.Login)
 	app.Post("/register", aa.Register)
+	app.Post("/auth/forgot-password", aa.ForgotPassword)
+	app.Post("/auth/reset-password", aa.ResetPassword)
 }
 
 func (aa authApi) Login(ctx *fiber.Ctx) error {
@@ -89,5 +91,42 @@ func (aa authApi) Register(ctx *fiber.Ctx) error {
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
 		"status":  "success",
 		"message": "Registration successful",
+	})
+}
+
+func (aa authApi) ForgotPassword(ctx *fiber.Ctx) error {
+	var req dto.ForgotPasswordRequest
+	if err := ctx.BodyParser(&req); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	err := aa.authService.ForgotPassword(ctx.Context(), req.Email)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":   "Failed to send OTP",
+			"message": err.Error(),
+		})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status":  "success",
+		"message": "OTP sent successfully",
+	})
+}
+
+func (aa authApi) ResetPassword(ctx *fiber.Ctx) error {
+	var req dto.ResetPasswordRequest
+	if err := ctx.BodyParser(&req); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	err := aa.authService.ResetPassword(ctx.Context(), req)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status":  "success",
+		"message": "Password updated successfully",
 	})
 }

@@ -13,4 +13,5 @@ type User struct {
 type UserRepository interface {
 	FindByEmail(ctx context.Context, email string) (User, error)
 	Save(ctx context.Context, user User) error
+	UpdatePassword(ctx context.Context, email string, password string) error
 }
