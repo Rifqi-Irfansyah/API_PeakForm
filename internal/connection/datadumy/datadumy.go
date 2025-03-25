@@ -13,8 +13,9 @@ func AddDefaultUser(db *gorm.DB) {
 	
 	// Buat admin user
 	admin := domain.User{
-		Email:    "admin2@example.com",
-		Name:     "Administrator",
+		ID:			"115dd593-1f58-454f-bd25-318cfd2b4819",
+		Email:    	"admin2@example.com",
+		Name:     	"Administrator",
 		Password: string(hashedPassword),
 	}
 

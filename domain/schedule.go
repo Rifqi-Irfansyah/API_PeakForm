@@ -8,29 +8,28 @@ import (
 )
 
 type Schedule struct {
-	ID        uint 		 	`gorm:"primaryKey"`
-	Type	  ExerciseType	`gorm:"type:exercise_type"`
-	Day       int         	`gorm:"not null; check:day >= 1 AND day <= 7"`
+	ID	  uint			`gorm:"primaryKey"`
+    UID   string    
+	Type  ExerciseType 	`gorm:"type:exercise_type"`
+    Day   int          	`gorm:"not null;check:day >= 1 AND day <= 7"`
+	User  User 			`gorm:"foreignKey:UID;references:ID"`
 
 	Exercises []Exercise	`gorm:"many2many:exercise_list"`
-	User	  []User		`gorm:"many2many:user_schedules"`
 }
 
 type ScheduleRepository interface {
 	Save(ctx context.Context, schedule *Schedule) error
 	SaveExercise(ctx context.Context, schedule *ExerciseList) error
-	AddScheduleToUser(ctx context.Context, userID string, scheduleID uint) error
 	FindByUID(ctx context.Context, ID string) ([]Schedule, error) 
-	FindByUIDAndDay(ctx context.Context, uid string, day int, schedule *Schedule) *Schedule
+	FindByUIDDayType(ctx context.Context, uid string, day int, typee string, schedule *Schedule) *Schedule
 	Delete(ctx context.Context, id uint) *gorm.DB
-	DeleteExercise(ctx context.Context, id uint) *gorm.DB
-	DeleteUserSchedule(ctx context.Context, userID string, scheduleID uint) error
-
+	DeleteExercise(ctx context.Context, id uint, id_exercise int) *gorm.DB
+	CountExercisesByScheduleID(ctx context.Context, id uint) int64
 }
 
 type ScheduleService interface {
-	// Save(ctx context.Context, schedule *Schedule) error
 	Create(ctx context.Context, req dto.CreateScheduleRequest) error
 	FindByUID(ctx context.Context, uid string) (dto.ScheduleListResponse, error)
 	DeleteSchedule(ctx context.Context, userID string, scheduleID uint) error
+	DeleteExerciseSchedule(ctx context.Context, id uint, id_exercise int) error
 }

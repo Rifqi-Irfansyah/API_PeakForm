@@ -39,7 +39,6 @@ func main() {
 	datadumy.AddDefaultUser(dbConnection)
 	datadumy.AddExercise(dbConnection)
 	datadumy.AddSchedules(dbConnection)
-	datadumy.AddUserSchedules(dbConnection)
 
 	otpRepository := repository.NewOTPRepository()
 	userRepository := repository.NewUserRepository(dbConnection)
