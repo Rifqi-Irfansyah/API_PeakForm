@@ -42,11 +42,11 @@ func main() {
 	datadumy.AddUserSchedules(dbConnection)
 
 	otpRepository := repository.NewOTPRepository()
-	uerRepository := repository.NewUserRepository(dbConnection)
+	userRepository := repository.NewUserRepository(dbConnection)
 	scheduleRepository := repository.NewSchedule(dbConnection)
 
 	scheduleService := service.NewScheduleService(scheduleRepository)
-	authService := service.NewAuthService(cnf, uerRepository, otpRepository)
+	authService := service.NewAuthService(cnf, userRepository, otpRepository)
 
 	api.NewAuthApi(app, authService)
 	api.NewScheduleApi(app, scheduleService)
