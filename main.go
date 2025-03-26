@@ -35,13 +35,16 @@ func main() {
 	datadumy.AddDefaultUser(dbConnection)
 	datadumy.AddExercise(dbConnection)
 	datadumy.AddSchedules(dbConnection)
+	datadumy.AddUserSchedules(dbConnection)
 
 	otpRepository := repository.NewOTPRepository()
 	userRepository := repository.NewUserRepository(dbConnection)
 	scheduleRepository := repository.NewSchedule(dbConnection)
+	logRepository := repository.NewLogRepository(dbConnection)
 
 	scheduleService := service.NewScheduleService(scheduleRepository)
 	authService := service.NewAuthService(cnf, userRepository, otpRepository)
+	logService := service.NewLogService(logRepository, userRepository)
 
 	// endpoints that do not require a token
 	api.NewAuthApi(app, authService)
@@ -49,6 +52,7 @@ func main() {
 	// endpoints that require a token
 	app.Use(jwtMid)
 	api.NewScheduleApi(app, scheduleService)
+	api.NewLogApi(app, logService)
 
 	_ = app.Listen(cnf.Server.Host + ":" + cnf.Server.Port)
 }

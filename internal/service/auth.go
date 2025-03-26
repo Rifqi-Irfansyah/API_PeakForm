@@ -201,7 +201,7 @@ func sendOTPByEmail(email, otp string) error {
 // It returns the signed token string or an error if signing fails.
 func generateJWT(userID string, secretKey string, expMinutes int) (string, error) {
 	if secretKey == "" {
-		log.Println("Secret key is empty!")
+		log.Println("Secret key kosong!")
 		return "", errors.New("secret key is empty")
 	}
 

@@ -1,21 +1,28 @@
 package domain
 
 import (
+	"api-peak-form/dto"
 	"context"
 	"time"
 )
 
 type Log struct {
 	ID         uint      `gorm:"primaryKey"`
-	UserID     uint      `gorm:"not null"`
-	ScheduleID uint      `gorm:"not null"`
-	Timestamp  time.Time `gorm:"autoCreateTime"`
-	Status     string    `gorm:"type:varchar(50);not null"`
-	User       User      `gorm:"foreignKey:UserID"`
-	Schedule   Schedule  `gorm:"foreignKey:ScheduleID"`
+	UserID     string    `gorm:"type:uuid;not null"`
+	ExerciseID uint      `gorm:"not null"`
+	Timestamp  time.Time `gorm:"not null"`
+	Exercise   Exercise  `gorm:"foreignKey:ExerciseID"`
+	Set        int       `gorm:"not null"`
+	Repetition int       `gorm:"not null"`
 }
 
 type LogRepository interface {
 	Create(ctx context.Context, log Log) error
-	FindAll(ctx context.Context) ([]Log, error)
+	FindByUserID(ctx context.Context, userID string) ([]Log, error)
+}
+
+type LogService interface {
+	Create(ctx context.Context, req dto.LogRequest) error
+	FindByUserID(ctx context.Context, userID string) ([]Log, error)
+	GetUserWorkoutSummary(ctx context.Context, userID string) (dto.WorkoutSummary, error)
 }
