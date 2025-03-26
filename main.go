@@ -38,9 +38,11 @@ func main() {
 	otpRepository := repository.NewOTPRepository()
 	userRepository := repository.NewUserRepository(dbConnection)
 	scheduleRepository := repository.NewSchedule(dbConnection)
+	exerciseRepo := repository.NewExercise(dbConnection)
 	logRepository := repository.NewLogRepository(dbConnection)
 
 	scheduleService := service.NewScheduleService(scheduleRepository)
+	exerciseService := service.NewExerciseService(exerciseRepo)
 	authService := service.NewAuthService(cnf, userRepository, otpRepository)
 	logService := service.NewLogService(logRepository, userRepository)
 
@@ -51,6 +53,7 @@ func main() {
 	//app.Use(jwtMid)
 	api.NewScheduleApi(app, scheduleService)
 	api.NewLogApi(app, logService)
+	api.NewExerciseAPI(app, exerciseService)
 
 	_ = app.Listen(cnf.Server.Host + ":" + cnf.Server.Port)
 }
