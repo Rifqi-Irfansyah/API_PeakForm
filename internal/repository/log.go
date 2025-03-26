@@ -24,7 +24,7 @@ func (l logRepository) Create(ctx context.Context, log domain.Log) error {
 
 func (l logRepository) FindByUserID(ctx context.Context, userID string) ([]domain.Log, error) {
 	var logs []domain.Log
-	if err := l.db.WithContext(ctx).Where("user_id = ?", userID).Find(&logs).Error; err != nil {
+	if err := l.db.WithContext(ctx).Preload("Exercise").Where("user_id = ?", userID).Find(&logs).Error; err != nil {
 		return nil, fmt.Errorf("failed to fetch logs for user ID %d: %w", userID, err)
 	}
 	return logs, nil

@@ -82,7 +82,6 @@ func (a authService) Register(ctx context.Context, data dto.RegisterRequest) err
 }
 
 func (a authService) ForgotPassword(ctx context.Context, email string) error {
-	// Cek apakah email user ada
 	user, err := a.userRepository.FindByEmail(ctx, email)
 	if err != nil {
 		return errors.New("failed to check user")
