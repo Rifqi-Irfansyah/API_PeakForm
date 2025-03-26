@@ -33,12 +33,15 @@ func main() {
 
 	uerRepository := repository.NewUserRepository(dbConnection)
 	scheduleRepository := repository.NewSchedule(dbConnection)
+	exerciseRepo := repository.NewExercise(dbConnection)
 
 	authService := service.NewAuthService(cnf, uerRepository)
 	scheduleService := service.NewScheduleService(scheduleRepository)
+	exerciseService := service.NewExerciseService(exerciseRepo)
 
 	api.NewAuthApi(app, authService)
 	api.NewScheduleApi(app, scheduleService)
+	api.NewExerciseAPI(app, exerciseService)
 
 	_ = app.Listen(cnf.Server.Host + ":" + cnf.Server.Port)
 }
