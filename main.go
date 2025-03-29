@@ -8,9 +8,9 @@ import (
 	"api-peak-form/internal/connection/datadumy"
 	"api-peak-form/internal/repository"
 	"api-peak-form/internal/service"
+	"github.com/sirupsen/logrus"
 
 	"github.com/gofiber/fiber/v2"
-	"log"
 	"net/http"
 )
 
@@ -22,9 +22,9 @@ func main() {
 
 	err := dbConnection.AutoMigrate(&domain.User{})
 	if err != nil {
-		log.Fatal("Failed to migrate database:", err)
+		logrus.Fatal("Failed to migrate database:", err)
 	}
-	log.Println("Database migrated successfully")
+	logrus.Info("Database migrated successfully")
 
 	//jwtMid := jwtMiddleware.New(jwtMiddleware.Config{
 	//	SigningKey:   []byte(cnf.Jwt.Key),
@@ -55,10 +55,12 @@ func main() {
 	api.NewLogApi(app, logService)
 	api.NewExerciseAPI(app, exerciseService)
 
+	logrus.Infof("Starting server at %s:%s", cnf.Server.Host, cnf.Server.Port)
 	_ = app.Listen(cnf.Server.Host + ":" + cnf.Server.Port)
 }
 
 func jwtError(c *fiber.Ctx, _ error) error {
+	logrus.Warn("Invalid or expired token")
 	return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
 		"status":  "error",
 		"message": "Invalid or expired token",

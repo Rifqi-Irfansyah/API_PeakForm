@@ -3,17 +3,21 @@ package util
 import (
 	"fmt"
 	"github.com/go-playground/validator/v10"
+	"github.com/sirupsen/logrus"
 )
 
 // Validate validates a given struct based on its defined tags and returns a map of validation errors if any exist.
 func Validate[T any](data T) map[string]string {
+	logrus.Infof("Validating struct: %+v", data)
 	err := validator.New().Struct(data)
 	res := make(map[string]string)
 	if err != nil {
+		logrus.Warnf("Validation errors found: %v", err)
 		for _, err := range err.(validator.ValidationErrors) {
 			res[err.Field()] = TranslateTag(err)
 		}
 	}
+	logrus.Infof("Validation result: %+v", res)
 	return res
 }
 

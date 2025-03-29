@@ -8,9 +8,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/gomail.v2"
-	"log"
 	"math/rand"
 	"time"
 )
@@ -27,42 +27,43 @@ func NewAuthService(cfg *config.Config, userRepository domain.UserRepository, ot
 
 // Login authenticates a user by verifying the provided credentials and generates a JWT token upon success.
 func (a authService) Login(ctx context.Context, data dto.AuthRequest) (dto.AuthResponse, error) {
+	logrus.Infof("Attempting login for user: %s", data.Email)
 	user, err := a.userRepository.FindByEmail(ctx, data.Email)
 	if err != nil {
-		log.Println("Error while searching for user:", err)
+		logrus.Errorf("Error while searching for user: %v", err)
 		return dto.AuthResponse{}, err
 	}
 
 	if user.ID == "" {
-		log.Println("User not found or invalid email:", data.Email)
+		logrus.Warnf("User not found or invalid email: %s", data.Email)
 		return dto.AuthResponse{}, errors.New("username or password is wrong")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(data.Password)); err != nil {
-		log.Println("Password does not match for user:", data.Email)
+		logrus.Warnf("Password does not match for user: %s", data.Email)
 		return dto.AuthResponse{}, errors.New("username or password is wrong")
 	}
 
 	tokenStr, err := generateJWT(user.ID, a.cfg.Jwt.Key, a.cfg.Jwt.Exp)
 	if err != nil {
-		log.Println("Failed to generate JWT for user:", data.Email, "error:", err)
+		logrus.Errorf("Failed to generate JWT for user: %s, error: %v", data.Email, err)
 		return dto.AuthResponse{}, errors.New("failed to generate token")
 	}
 
-	log.Println("Login successful for user:", data.Email)
+	logrus.Infof("Login successful for user: %s", data.Email)
 	return dto.AuthResponse{Token: tokenStr}, nil
 }
 
 // Register creates a new user account, hashes the password, saves the user in the repository, and returns a JWT token.
 func (a authService) Register(ctx context.Context, data dto.RegisterRequest) error {
 	if data.Name == "" || data.Email == "" || data.Password == "" {
-		log.Println("Register error: missing required fields")
+		logrus.Warn("Register error: missing required fields")
 		return errors.New("all fields are required")
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(data.Password), bcrypt.DefaultCost)
 	if err != nil {
-		log.Println("Register error: failed to hash password:", err)
+		logrus.Error("Register error: failed to hash password:", err)
 		return errors.New("failed to hash password")
 	}
 
@@ -74,63 +75,79 @@ func (a authService) Register(ctx context.Context, data dto.RegisterRequest) err
 
 	err = a.userRepository.Save(ctx, user)
 	if err != nil {
-		log.Println("Register error: failed to save user:", err)
+		logrus.Error("Register error: failed to save user:", err)
 		return errors.New("failed to save user")
 	}
 
+	logrus.Infof("User registered successfully: %s", data.Email)
 	return nil
 }
 
 func (a authService) ForgotPassword(ctx context.Context, email string) error {
+	logrus.Infof("Attempting to process forgot password for email: %s", email)
 	user, err := a.userRepository.FindByEmail(ctx, email)
 	if err != nil {
+		logrus.Errorf("Failed to check user for email %s: %v", email, err)
 		return errors.New("failed to check user")
 	}
 	if user.ID == "" {
+		logrus.Warnf("Email not found: %s", email)
 		return errors.New("email not found")
 	}
 
 	otp := generateOTP()
+	logrus.Infof("Generated OTP for email %s: %s", email, otp)
 
 	err = a.otpRepository.SaveOTP(ctx, email, otp, time.Now().Add(10*time.Minute))
 	if err != nil {
+		logrus.Errorf("Failed to save OTP for email %s: %v", email, err)
 		return errors.New("failed to save OTP")
 	}
 
 	err = sendOTPByEmail(email, otp)
 	if err != nil {
+		logrus.Errorf("Failed to send OTP email to %s: %v", email, err)
 		return errors.New(err.Error())
 	}
 
+	logrus.Infof("OTP sent successfully to email: %s", email)
 	return nil
 }
 
 func (a authService) ResetPassword(ctx context.Context, data dto.ResetPasswordRequest) error {
+	logrus.Infof("Attempting to reset password for email: %s", data.Email)
 	valid, err := a.otpRepository.VerifyOTP(ctx, data.Email, data.OTP)
 	if err != nil || !valid {
+		logrus.Warnf("Invalid or expired OTP for email: %s", data.Email)
 		return errors.New("invalid or expired OTP")
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(data.NewPassword), bcrypt.DefaultCost)
 	if err != nil {
+		logrus.Errorf("Failed to hash new password for email: %s, error: %v", data.Email, err)
 		return errors.New("failed to hash password")
 	}
 
 	err = a.userRepository.UpdatePassword(ctx, data.Email, string(hashedPassword))
 	if err != nil {
+		logrus.Errorf("Failed to update password for email: %s, error: %v", data.Email, err)
 		return errors.New("failed to update password")
 	}
 
 	err = a.otpRepository.DeleteOTP(ctx, data.Email)
 	if err != nil {
+		logrus.Errorf("Failed to delete OTP for email: %s, error: %v", data.Email, err)
 		return errors.New("failed to delete OTP")
 	}
 
+	logrus.Infof("Password reset successfully for email: %s", data.Email)
 	return nil
 }
 
 func generateOTP() string {
-	return fmt.Sprintf("%06d", rand.Intn(1000000))
+	otp := fmt.Sprintf("%06d", rand.Intn(1000000))
+	logrus.Infof("Generated OTP: %s", otp)
+	return otp
 }
 
 func sendOTPByEmail(email, otp string) error {
@@ -188,11 +205,11 @@ func sendOTPByEmail(email, otp string) error {
 	dialer := gomail.NewDialer(smtpHost, smtpPort, from, password)
 
 	if err := dialer.DialAndSend(mailer); err != nil {
-		fmt.Println("Error sending email:", err)
+		logrus.Errorf("Error sending email to %s: %v", email, err)
 		return err
 	}
 
-	fmt.Println("OTP sent successfully to", email)
+	logrus.Infof("OTP sent successfully to %s", email)
 	return nil
 }
 
@@ -200,7 +217,7 @@ func sendOTPByEmail(email, otp string) error {
 // It returns the signed token string or an error if signing fails.
 func generateJWT(userID string, secretKey string, expMinutes int) (string, error) {
 	if secretKey == "" {
-		log.Println("Secret key kosong!")
+		logrus.Error("Secret key is empty")
 		return "", errors.New("secret key is empty")
 	}
 
@@ -210,5 +227,12 @@ func generateJWT(userID string, secretKey string, expMinutes int) (string, error
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(secretKey))
+	tokenStr, err := token.SignedString([]byte(secretKey))
+	if err != nil {
+		logrus.Errorf("Failed to sign token: %v", err)
+		return "", err
+	}
+
+	logrus.Infof("JWT generated successfully for user ID: %s", userID)
+	return tokenStr, nil
 }

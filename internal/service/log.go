@@ -5,6 +5,7 @@ import (
 	"api-peak-form/dto"
 	"context"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -24,6 +25,8 @@ func (l logService) Create(ctx context.Context, req dto.LogRequest) error {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
+	logrus.Infof("Creating log for user ID: %s and exercise ID: %d", req.UserID, req.ExerciseID)
+
 	log := domain.Log{
 		UserID:     req.UserID,
 		ExerciseID: req.ExerciseID,
@@ -34,14 +37,17 @@ func (l logService) Create(ctx context.Context, req dto.LogRequest) error {
 
 	_, err := l.userRepository.FindByID(ctx, req.UserID)
 	if err != nil {
+		logrus.Errorf("Failed to find user with ID %s: %v", req.UserID, err)
 		return fmt.Errorf("failed to find user with ID %s: %w", req.UserID, err)
 	}
 
 	err = l.logRepository.Create(ctx, log)
 	if err != nil {
+		logrus.Errorf("Failed to create log: %v", err)
 		return fmt.Errorf("failed to create log: %w", err)
 	}
 
+	logrus.Infof("Log created successfully for user ID: %s and exercise ID: %d", req.UserID, req.ExerciseID)
 	return nil
 }
 
@@ -49,11 +55,14 @@ func (l logService) FindByUserID(ctx context.Context, userID string) ([]domain.L
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
+	logrus.Infof("Fetching logs for user ID: %s", userID)
 	logs, err := l.logRepository.FindByUserID(ctx, userID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch logs for user ID %d: %w", userID, err)
+		logrus.Errorf("Failed to fetch logs for user ID %s: %v", userID, err)
+		return nil, fmt.Errorf("failed to fetch logs for user ID %s: %w", userID, err)
 	}
 
+	logrus.Infof("Fetched %d logs for user ID: %s", len(logs), userID)
 	return logs, nil
 }
 
@@ -61,8 +70,11 @@ func (l logService) GetUserWorkoutSummary(ctx context.Context, userID string) (d
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
+	logrus.Infof("Fetching workout summary for user ID: %s", userID)
+
 	logs, err := l.logRepository.FindByUserID(ctx, userID)
 	if err != nil {
+		logrus.Errorf("Failed to fetch logs for user ID %s: %v", userID, err)
 		return dto.WorkoutSummary{}, fmt.Errorf("failed to fetch logs for user ID %s: %w", userID, err)
 	}
 
@@ -88,6 +100,9 @@ func (l logService) GetUserWorkoutSummary(ctx context.Context, userID string) (d
 	}
 
 	averageSessionPerWeek := float64(totalExercises) / 7.0
+
+	logrus.Infof("Workout summary for user ID %s: TotalWorkoutTime=%v, TotalExercises=%d, TotalSets=%d, TotalRepetitions=%d, MostFrequentExercise=%s, AverageSessionPerWeek=%.2f",
+		userID, totalWorkoutTime, totalExercises, totalSets, totalRepetitions, mostFrequentExercise, averageSessionPerWeek)
 
 	return dto.WorkoutSummary{
 		TotalWorkoutTime:      totalWorkoutTime,

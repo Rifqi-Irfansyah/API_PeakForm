@@ -1,9 +1,10 @@
 package service
 
 import (
-	"context"
 	"api-peak-form/domain"
 	"api-peak-form/dto"
+	"context"
+	"github.com/sirupsen/logrus"
 )
 
 type exerciseService struct {
@@ -15,6 +16,7 @@ func NewExerciseService(repo domain.ExerciseRepository) domain.ExerciseService {
 }
 
 func (s *exerciseService) CreateExercise(ctx context.Context, req dto.CreateExerciseRequest) error {
+	logrus.Infof("Creating exercise with name: %s", req.Name)
 	exercise := &domain.Exercise{
 		Name:         req.Name,
 		Type:         domain.ExerciseType(req.Type),
@@ -24,25 +26,43 @@ func (s *exerciseService) CreateExercise(ctx context.Context, req dto.CreateExer
 		Instructions: req.Instructions,
 		Gif:          req.Gif,
 	}
-	return s.repo.Create(ctx, exercise)
+	err := s.repo.Create(ctx, exercise)
+	if err != nil {
+		logrus.Errorf("Failed to create exercise: %v", err)
+		return err
+	}
+	logrus.Infof("Exercise created successfully with name: %s", req.Name)
+	return nil
 }
 
 func (s *exerciseService) GetExercises(ctx context.Context) ([]domain.Exercise, error) {
-	return s.repo.GetAll(ctx)
+	logrus.Info("Fetching all exercises")
+	exercises, err := s.repo.GetAll(ctx)
+	if err != nil {
+		logrus.Errorf("Failed to fetch exercises: %v", err)
+		return nil, err
+	}
+	logrus.Infof("Fetched %d exercises", len(exercises))
+	return exercises, nil
 }
 
 func (s *exerciseService) GetExerciseByID(ctx context.Context, id uint) (domain.Exercise, error) {
+	logrus.Infof("Fetching exercise with ID: %d", id)
 	exercise, err := s.repo.GetByID(ctx, id)
 	if err != nil {
+		logrus.Errorf("Failed to fetch exercise with ID %d: %v", id, err)
 		return domain.Exercise{}, err
 	}
-	return *exercise, nil 
+	logrus.Infof("Fetched exercise with ID: %d", id)
+	return *exercise, nil
 }
 
 func (s *exerciseService) UpdateExercise(ctx context.Context, req dto.UpdateExerciseRequest) error {
-	
+	logrus.Infof("Updating exercise with ID: %d", req.ID)
+
 	existingExercise, err := s.repo.GetByID(ctx, req.ID)
 	if err != nil {
+		logrus.Errorf("Failed to fetch exercise with ID %d: %v", req.ID, err)
 		return err
 	}
 
@@ -68,10 +88,23 @@ func (s *exerciseService) UpdateExercise(ctx context.Context, req dto.UpdateExer
 		existingExercise.Gif = req.Gif
 	}
 
-	return s.repo.Update(ctx, existingExercise)
+	err = s.repo.Update(ctx, existingExercise)
+	if err != nil {
+		logrus.Errorf("Failed to update exercise with ID %d: %v", req.ID, err)
+		return err
+	}
+
+	logrus.Infof("Exercise updated successfully with ID: %d", req.ID)
+	return nil
 }
 
-
 func (s *exerciseService) DeleteExercise(ctx context.Context, id uint) error {
-	return s.repo.Delete(ctx, id)
+	logrus.Infof("Attempting to delete exercise with ID: %d", id)
+	err := s.repo.Delete(ctx, id)
+	if err != nil {
+		logrus.Errorf("Failed to delete exercise with ID %d: %v", id, err)
+		return err
+	}
+	logrus.Infof("Exercise deleted successfully with ID: %d", id)
+	return nil
 }
