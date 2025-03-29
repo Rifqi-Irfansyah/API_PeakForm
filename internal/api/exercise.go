@@ -4,10 +4,10 @@ import (
 	"api-peak-form/domain"
 	"api-peak-form/dto"
 	"context"
-	"strconv"
-	"path/filepath"
-	"strings"
 	"fmt"
+	"path/filepath"
+	"strconv"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -19,11 +19,11 @@ type ExerciseAPI struct {
 func NewExerciseAPI(app *fiber.App, service domain.ExerciseService) *ExerciseAPI {
 	api := &ExerciseAPI{service}
 
-	app.Post("/exercises", api.CreateExercise)     
-	app.Get("/exercises", api.GetExercises)       
+	app.Post("/exercises", api.CreateExercise)
+	app.Get("/exercises", api.GetExercises)
 	app.Get("/exercises/:id", api.GetExerciseByID)
 	app.Put("/exercises/:id", api.UpdateExercise)
-	app.Delete("/exercises/:id", api.DeleteExercise) 
+	app.Delete("/exercises/:id", api.DeleteExercise)
 	app.Static("/static/exercises", "./assets/exercises")
 
 	return api

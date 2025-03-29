@@ -28,7 +28,9 @@ func (la logApi) Create(ctx *fiber.Ctx) error {
 	err := ctx.BodyParser(&req)
 	if err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid request body. Ensure all fields are correctly formatted",
+			"status":  "error",
+			"message": "Invalid request body",
+			"details": err.Error(),
 		})
 	}
 
@@ -44,7 +46,8 @@ func (la logApi) Create(ctx *fiber.Ctx) error {
 		}
 
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":   "Invalid request body. Ensure all fields are correctly formatted",
+			"status":  "error",
+			"message": "Validation failed",
 			"details": validationErrors,
 		})
 	}
@@ -52,12 +55,14 @@ func (la logApi) Create(ctx *fiber.Ctx) error {
 	err = la.logService.Create(ctx.Context(), req)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":   "Failed to create log",
+			"status":  "error",
+			"message": "Failed to create log",
 			"details": err.Error(),
 		})
 	}
 
 	return ctx.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"status":  "success",
 		"message": "Log created successfully",
 		"data":    req,
 	})
@@ -67,20 +72,24 @@ func (la logApi) FindByUserID(ctx *fiber.Ctx) error {
 	userID := ctx.Params("id")
 	if userID == "" {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "UserID is required",
+			"status":  "error",
+			"message": "UserID is required",
 		})
 	}
 
 	logs, err := la.logService.FindByUserID(ctx.Context(), userID)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":   "Failed to fetch logs. Please try again later",
+			"status":  "error",
+			"message": "Failed to fetch logs for user ID " + userID,
 			"details": err.Error(),
 		})
 	}
 
 	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
-		"data": logs,
+		"status":  "success",
+		"message": "Logs fetched successfully",
+		"data":    logs,
 	})
 }
 
@@ -88,19 +97,22 @@ func (la logApi) GetUserWorkoutSummary(ctx *fiber.Ctx) error {
 	userID := ctx.Params("id")
 	if userID == "" {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "UserID is required",
+			"status":  "error",
+			"message": "UserID is required",
 		})
 	}
 
 	summary, err := la.logService.GetUserWorkoutSummary(ctx.Context(), userID)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":   "Failed to fetch workout summary. Please try again later",
+			"status":  "error",
+			"message": "Failed to fetch workout summary for user ID " + userID,
 			"details": err.Error(),
 		})
 	}
 
 	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status":  "success",
 		"message": "Workout summary fetched successfully",
 		"data":    summary,
 	})
