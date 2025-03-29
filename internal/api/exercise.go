@@ -3,8 +3,10 @@ package api
 import (
 	"api-peak-form/domain"
 	"api-peak-form/dto"
+	"api-peak-form/internal/util"
 	"context"
 	"fmt"
+	"net/http"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -39,6 +41,15 @@ func (api *ExerciseAPI) CreateExercise(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"status":  "error",
 			"message": "Invalid request body",
+		})
+	}
+
+	fails := util.Validate(req)
+	if len(fails) > 0 {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"status":  "error",
+			"message": "validation failed",
+			"details": fails,
 		})
 	}
 
@@ -152,6 +163,15 @@ func (api *ExerciseAPI) UpdateExercise(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"status":  "error",
 			"message": "Invalid request body",
+		})
+	}
+
+	fails := util.Validate(req)
+	if len(fails) > 0 {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"status":  "error",
+			"message": "validation failed",
+			"details": fails,
 		})
 	}
 

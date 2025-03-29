@@ -127,6 +127,16 @@ func (sa scheduleApi) FindByUID(ctx *fiber.Ctx) error {
 			"details": err.Error(),
 		})
 	}
+
+	fails := util.Validate(req)
+	if len(fails) > 0 {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"status":  "error",
+			"message": "validation failed",
+			"details": fails,
+		})
+	}
+
 	res, err := sa.scheduleService.FindByUID(ctx.Context(), req.UID)
 	if err != nil {
 		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{

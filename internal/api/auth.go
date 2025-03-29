@@ -3,6 +3,7 @@ package api
 import (
 	"api-peak-form/domain"
 	"api-peak-form/dto"
+	"api-peak-form/internal/util"
 	"context"
 	"errors"
 	"github.com/gofiber/fiber/v2"
@@ -37,12 +38,16 @@ func (aa authApi) Login(ctx *fiber.Ctx) error {
 			"details": err.Error(),
 		})
 	}
-	if req.Email == "" || req.Password == "" {
+
+	fails := util.Validate(req)
+	if len(fails) > 0 {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
 			"status":  "error",
-			"message": "Email and password are required",
+			"message": "validation failed",
+			"details": fails,
 		})
 	}
+
 	res, err := aa.authService.Login(c, req)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
@@ -76,12 +81,16 @@ func (aa authApi) Register(ctx *fiber.Ctx) error {
 			"details": err.Error(),
 		})
 	}
-	if req.Name == "" || req.Email == "" || req.Password == "" {
+
+	fails := util.Validate(req)
+	if len(fails) > 0 {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
 			"status":  "error",
-			"message": "Name, email, and password are required",
+			"message": "validation failed",
+			"details": fails,
 		})
 	}
+
 	err := aa.authService.Register(c, req)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
@@ -108,6 +117,15 @@ func (aa authApi) ForgotPassword(ctx *fiber.Ctx) error {
 		})
 	}
 
+	fails := util.Validate(req)
+	if len(fails) > 0 {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"status":  "error",
+			"message": "validation failed",
+			"details": fails,
+		})
+	}
+
 	err := aa.authService.ForgotPassword(ctx.Context(), req.Email)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -130,6 +148,15 @@ func (aa authApi) ResetPassword(ctx *fiber.Ctx) error {
 			"status":  "error",
 			"message": "Invalid request body",
 			"details": err.Error(),
+		})
+	}
+
+	fails := util.Validate(req)
+	if len(fails) > 0 {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"status":  "error",
+			"message": "validation failed",
+			"details": fails,
 		})
 	}
 
