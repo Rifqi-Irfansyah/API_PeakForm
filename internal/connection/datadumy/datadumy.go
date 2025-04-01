@@ -18,11 +18,24 @@ func AddDefaultUser(db *gorm.DB) {
 		Password: string(hashedPassword),
 	}
 
+	user := domain.User{
+		ID:       "115dd593-1f58-454f-bd25-318cfd2b4810",
+		Email:    "user@example.com",
+		Name:     "User",
+		Password: string(hashedPassword),
+	}
+
 	// Simpan ke database
 	if err := db.Create(&admin).Error; err != nil {
 		logrus.Errorf("Failed to create admin user: %v", err)
 	} else {
 		logrus.Info("Admin user created: admin@example.com")
+	}
+
+	if err := db.Create(&user).Error; err != nil {
+		logrus.Errorf("Failed to create account user: %v", err)
+	} else {
+		logrus.Info("Account user created: admin@example.com")
 	}
 }
 
