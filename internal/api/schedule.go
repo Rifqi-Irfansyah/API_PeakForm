@@ -41,7 +41,8 @@ func (sa scheduleApi) Create(ctx *fiber.Ctx) error {
 	fails := util.Validate(req)
 	if len(fails) > 0 {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"error":   "validation failed",
+			"status":  "error",
+			"message": "validation failed",
 			"details": fails,
 		})
 	}
@@ -52,8 +53,8 @@ func (sa scheduleApi) Create(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.Status(http.StatusCreated).JSON(fiber.Map{
-		"success": true,
-		"data":    req,
+		"status":  "success",
+		"message": "Schedule created successfully",
 	})
 }
 
@@ -68,7 +69,8 @@ func (sa scheduleApi) Update(ctx *fiber.Ctx) error {
 	fails := util.Validate(req)
 	if len(fails) > 0 {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"error":   "validation failed",
+			"status":  "error",
+			"message": "validation failed",
 			"details": fails,
 		})
 	}
@@ -79,8 +81,8 @@ func (sa scheduleApi) Update(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
-		"success": true,
-		"data":    req,
+		"status":  "success",
+		"message": "Schedule updated successfully",
 	})
 }
 
@@ -96,7 +98,8 @@ func (sa scheduleApi) UpdateExerciseList(ctx *fiber.Ctx) error {
 	fails := util.Validate(req)
 	if len(fails) > 0 {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"error":   "validation failed",
+			"status":  "error",
+			"message": "validation failed",
 			"details": fails,
 		})
 	}
@@ -107,8 +110,8 @@ func (sa scheduleApi) UpdateExerciseList(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
-		"success": true,
-		"data":    req,
+		"status":  "success",
+		"message": "Exercise Schedule updated successfully",
 	})
 }
 
@@ -120,15 +123,26 @@ func (sa scheduleApi) FindByUID(ctx *fiber.Ctx) error {
 	if UID == "" {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
 			"status":  "error",
-			"message": "UID parameter is required",
+			"message": "Invalid request body",
+			"details": "UID Required",
 		})
 	}
+
+	// fails := util.Validate(UID)
+	// if len(fails) > 0 {
+	// 	return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+	// 		"status":  "error",
+	// 		"message": "validation failed",
+	// 		"details": fails,
+	// 	})
+	// }
 
 	res, err := sa.scheduleService.FindByUID(ctx.Context(), UID)
 	if err != nil {
 		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"status":  "error",
-			"message": err.Error(),
+			"message": "Failed to fetch schedule",
+			"details": err.Error(),
 		})
 	}
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
@@ -148,7 +162,8 @@ func (sa scheduleApi) Delete(ctx *fiber.Ctx) error {
 	if err != nil {
 		println("Error saat membaca ID API Req: ", err.Error())
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid ID format",
+			"status":  "error",
+			"message": "Invalid ID format",
 		})
 	}
 
@@ -158,7 +173,7 @@ func (sa scheduleApi) Delete(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
-		"success": true,
+		"status":  "success",
 		"message": "schedule deleted successfully",
 	})
 }
@@ -167,22 +182,24 @@ func (sa scheduleApi) DeleteExercise(ctx *fiber.Ctx) error {
 	c, cancel := context.WithTimeout(ctx.Context(), 10*time.Second)
 	defer cancel()
 
-	id 			:= ctx.Query("id_schedule")
-	id_exercise	:= ctx.Query("id_exercise")
+	id := ctx.Query("id_schedule")
+	idExercise := ctx.Query("id_exercise")
 
 	uintId, err := strconv.ParseUint(id, 10, 64)
 	if err != nil {
 		println("Error saat membaca ID API Req: ", err.Error())
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid ID format",
+			"status":  "error",
+			"message": "Invalid ID format",
 		})
 	}
 
-	intExerciseID, err := strconv.Atoi(id_exercise)
+	intExerciseID, err := strconv.Atoi(idExercise)
 	if err != nil {
 		println("Error saat membaca ID Exercise API Req: ", err.Error())
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid Exercise ID format",
+			"status":  "error",
+			"message": "Invalid ID format",
 		})
 	}
 
@@ -192,7 +209,7 @@ func (sa scheduleApi) DeleteExercise(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
-		"success": true,
+		"status":  "success",
 		"message": "schedule deleted successfully",
 	})
 }

@@ -9,7 +9,7 @@ import (
 
 type Schedule struct {
 	ID	  uint			`gorm:"primaryKey"`
-    UID   string    
+    UID   string
 	Type  ExerciseType 	`gorm:"type:exercise_type"`
     Day   int          	`gorm:"not null;check:day >= 1 AND day <= 7"`
 
@@ -24,7 +24,7 @@ type ScheduleRepository interface {
 	Update(ctx context.Context, s *Schedule) error
 	UpdateExercise(ctx context.Context, scheduleID, exerciseID uint, updates map[string]interface{}) error
 	FindById(ctx context.Context, id string) (result Schedule, err error)
-	FindByUID(ctx context.Context, id string) ([]Schedule, error) 
+	FindByUID(ctx context.Context, id string) ([]Schedule, error)
 	FindByIdExerciseId(ctx context.Context, id string, eid uint) (ExerciseList, error)
 	FindByUIDDayType(ctx context.Context, uid string, day int, typee string, schedule *Schedule) *Schedule
 	Delete(ctx context.Context, id uint) *gorm.DB

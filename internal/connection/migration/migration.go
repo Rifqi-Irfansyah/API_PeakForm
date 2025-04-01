@@ -3,27 +3,32 @@ package migration
 import (
 	"api-peak-form/domain"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
-	"log"
 )
 
 func Migrate(dbConnection *gorm.DB) error {
+	logrus.Info("Starting database migration")
+
 	dbConnection.Exec("DROP TABLE IF EXISTS exercise_list, user_schedules, users, schedules, exercises, logs, exercise_lists CASCADE;")
+	logrus.Info("Dropped existing tables if they exist")
 
 	if err := createEnums(dbConnection); err != nil {
-		log.Printf("Warning: Failed to create enums: %v", err)
+		logrus.Warnf("Warning: Failed to create enums: %v", err)
 	}
 
 	err := dbConnection.AutoMigrate(&domain.User{}, &domain.Log{}, &domain.Exercise{}, &domain.Schedule{}, &domain.ExerciseList{})
 	if err != nil {
+		logrus.Errorf("Failed to migrate database: %v", err)
 		return fmt.Errorf("failed to migrate database: %w", err)
 	}
 
-	log.Println("Database migrated successfully")
+	logrus.Info("Database migrated successfully")
 	return nil
 }
 
 func createEnums(db *gorm.DB) error {
+	logrus.Info("Starting to create enums")
 	enumQueries := []struct {
 		Type  string
 		Query string
@@ -35,11 +40,14 @@ func createEnums(db *gorm.DB) error {
 	}
 
 	for _, enum := range enumQueries {
+		logrus.Infof("Creating enum type '%s'", enum.Type)
 		if err := db.Exec(enum.Query).Error; err != nil {
-			log.Printf("Error: Failed to create enum type '%s': %v", enum.Type, err)
+			logrus.Errorf("Failed to create enum type '%s': %v", enum.Type, err)
 			return fmt.Errorf("failed to create enum type '%s': %w", enum.Type, err)
 		}
+		logrus.Infof("Successfully created enum type '%s'", enum.Type)
 	}
 
+	logrus.Info("Finished creating enums")
 	return nil
 }

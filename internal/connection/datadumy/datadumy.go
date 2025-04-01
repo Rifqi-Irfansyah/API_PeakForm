@@ -2,27 +2,28 @@ package datadumy
 
 import (
 	"api-peak-form/domain"
-	"log"
-
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 func AddDefaultUser(db *gorm.DB) {
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("admin123"), bcrypt.DefaultCost)
-	
+
 	// Buat admin user
 	admin := domain.User{
-		ID:			"115dd593-1f58-454f-bd25-318cfd2b4819",
-		Email:    	"admin2@example.com",
-		Name:     	"Administrator",
+		ID:       "115dd593-1f58-454f-bd25-318cfd2b4819",
+		Email:    "admin2@example.com",
+		Name:     "Administrator",
 		Password: string(hashedPassword),
 	}
 
 	// Simpan ke database
-	db.Create(&admin)
-	log.Println("Admin user created: admin@example.com")
-
+	if err := db.Create(&admin).Error; err != nil {
+		logrus.Errorf("Failed to create admin user: %v", err)
+	} else {
+		logrus.Info("Admin user created: admin@example.com")
+	}
 }
 
 func AddExercise(db *gorm.DB) {
@@ -50,9 +51,9 @@ func AddExercise(db *gorm.DB) {
 
 	for _, exercise := range exercises {
 		if err := db.Create(&exercise).Error; err != nil {
-			log.Println("Gagal menambahkan data exercise:", err)
+			logrus.Errorf("Failed to add exercise data: %v", err)
 		} else {
-			log.Println("Exercise ditambahkan:", exercise.Name)
+			logrus.Infof("Exercise added: %s", exercise.Name)
 		}
 	}
 }

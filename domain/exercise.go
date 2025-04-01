@@ -1,5 +1,10 @@
 package domain
 
+import (
+	"api-peak-form/dto"
+	"context"
+)
+
 type Exercise struct {
 	ID           uint            `gorm:"primaryKey"`
 	Name         string          `gorm:"type:varchar(100);not null"`
@@ -12,5 +17,17 @@ type Exercise struct {
 }
 
 type ExerciseRepository interface {
-	// TYpe the method here
+	Create(ctx context.Context, exercise *Exercise) error
+	GetAll(ctx context.Context) ([]Exercise, error)
+	GetByID(ctx context.Context, id uint) (*Exercise, error)
+	Update(ctx context.Context, exercise *Exercise) error
+	Delete(ctx context.Context, id uint) error
+}
+
+type ExerciseService interface {
+	CreateExercise(ctx context.Context, req dto.CreateExerciseRequest) error
+	GetExercises(ctx context.Context) ([]Exercise, error)
+	GetExerciseByID(ctx context.Context, id uint) (Exercise, error)
+	UpdateExercise(ctx context.Context, req dto.UpdateExerciseRequest) error
+	DeleteExercise(ctx context.Context, id uint) error
 }
