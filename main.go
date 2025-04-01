@@ -10,7 +10,7 @@ import (
 	"api-peak-form/internal/service"
 
 	"github.com/gofiber/fiber/v2"
-	jwtMiddleware "github.com/gofiber/jwt/v3"
+	// jwtMiddleware "github.com/gofiber/jwt/v3"
 
 	"log"
 	"net/http"
@@ -28,10 +28,10 @@ func main() {
 	}
 	log.Println("Database migrated successfully")
 
-	jwtMid := jwtMiddleware.New(jwtMiddleware.Config{
-		SigningKey:   []byte(cnf.Jwt.Key),
-		ErrorHandler: jwtError,
-	})
+	// jwtMid := jwtMiddleware.New(jwtMiddleware.Config{
+		// SigningKey:   []byte(cnf.Jwt.Key),
+		// ErrorHandler: jwtError,
+	// })
 	datadumy.AddDefaultUser(dbConnection)
 	datadumy.AddExercise(dbConnection)
 	datadumy.AddSchedules(dbConnection)
@@ -47,7 +47,7 @@ func main() {
 	api.NewAuthApi(app, authService)
 
 	// endpoints that require a token
-	app.Use(jwtMid)
+	// app.Use(jwtMid)
 	api.NewScheduleApi(app, scheduleService)
 
 	_ = app.Listen(cnf.Server.Host + ":" + cnf.Server.Port)

@@ -116,14 +116,15 @@ func (sa scheduleApi) FindByUID(ctx *fiber.Ctx) error {
 	_, cancel := context.WithTimeout(ctx.Context(), 10*time.Second)
 	defer cancel()
 
-	var req dto.ScheduleRequest
-	if err := ctx.BodyParser(&req); err != nil {
+	UID := ctx.Query("UID")
+	if UID == "" {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
 			"status":  "error",
-			"message": err.Error(),
+			"message": "UID parameter is required",
 		})
 	}
-	res, err := sa.scheduleService.FindByUID(ctx.Context(), req.UID)
+
+	res, err := sa.scheduleService.FindByUID(ctx.Context(), UID)
 	if err != nil {
 		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"status":  "error",
