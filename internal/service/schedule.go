@@ -149,7 +149,7 @@ func (s scheduleService) FindByUID(ctx context.Context, uid string) (dto.Schedul
 				Equipment:    string(exList.Exercise.Equipment),
 				Difficulty:   string(exList.Exercise.Difficulty),
 				Instructions: exList.Exercise.Instructions,
-				Gif:          exList.Exercise.Gif,
+				Image:          exList.Exercise.Image,
 			})
 		}
 

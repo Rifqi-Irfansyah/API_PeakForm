@@ -63,8 +63,9 @@ func (sa scheduleApi) Update(ctx *fiber.Ctx) error {
 	defer cancel()
 
 	var req dto.UpdateScheduleRequest
-	req.ID = ctx.Query("id")
-	req.Day = ctx.QueryInt("day")
+	if err := ctx.BodyParser(&req); err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
 
 	fails := util.Validate(req)
 	if len(fails) > 0 {

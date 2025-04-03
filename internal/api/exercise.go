@@ -77,7 +77,7 @@ func (api *ExerciseAPI) CreateExercise(c *fiber.Ctx) error {
 		})
 	}
 
-	req.Gif = fmt.Sprintf("%s/static/exercises/%s", baseURL, file.Filename)
+	req.Image = fmt.Sprintf("%s/static/exercises/%s", baseURL, file.Filename)
 
 	if err := api.service.CreateExercise(ctx, req); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -96,7 +96,7 @@ func (api *ExerciseAPI) CreateExercise(c *fiber.Ctx) error {
 			"equipment":    req.Equipment,
 			"difficulty":   req.Difficulty,
 			"instructions": req.Instructions,
-			"gif":          req.Gif,
+			"image":          req.Image,
 		},
 	})
 }

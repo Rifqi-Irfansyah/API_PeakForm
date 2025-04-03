@@ -13,7 +13,7 @@ type Exercise struct {
 	Equipment    Equipment       `gorm:"type:equipment;not null"`
 	Difficulty   DifficultyLevel `gorm:"type:difficulty_level;not null"`
 	Instructions string          `gorm:"type:TEXT;not null"`
-	Gif          string          `gorm:"type:varchar(255);not null"`
+	Image		 string			 `gorm:"type:varchar(255);not null"`
 }
 
 type ExerciseRepository interface {
