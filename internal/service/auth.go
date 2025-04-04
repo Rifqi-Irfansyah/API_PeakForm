@@ -51,19 +51,63 @@ func (a authService) Login(ctx context.Context, data dto.AuthRequest) (dto.AuthR
 	}
 
 	logrus.Infof("Login successful for user: %s", data.Email)
-	return dto.AuthResponse{Token: tokenStr}, nil
+	return dto.AuthResponse{
+		UserID: user.ID,
+		Name:   user.Name,
+		Email:  user.Email,
+		Token:  tokenStr,
+	}, nil
 }
 
-// Register creates a new user account, hashes the password, saves the user in the repository, and returns a JWT token.
 func (a authService) Register(ctx context.Context, data dto.RegisterRequest) error {
-	if data.Name == "" || data.Email == "" || data.Password == "" {
+	if data.Email == "" {
 		logrus.Warn("Register error: missing required fields")
 		return errors.New("all fields are required")
 	}
 
+	existingUser, err := a.userRepository.FindByEmail(ctx, data.Email)
+	if err == nil && existingUser.ID != "" {
+		logrus.Warnf("Email already registered: %s", data.Email)
+		return errors.New("email already registered")
+	}
+
+	otp := generateOTP()
+	logrus.Infof("Generated OTP for email %s: %s", data.Email, otp)
+
+	err = a.otpRepository.SaveOTP(ctx, data.Email, otp, time.Now().Add(10*time.Minute))
+	if err != nil {
+		logrus.Errorf("Failed to save OTP for email %s: %v", data.Email, err)
+		return errors.New("failed to save OTP")
+	}
+
+	err = sendOTPByEmail(data.Email, otp)
+	if err != nil {
+		logrus.Errorf("Failed to send OTP to email %s: %v", data.Email, err)
+		return errors.New("failed to send OTP")
+	}
+
+	logrus.Infof("OTP sent successfully to email: %s", data.Email)
+	return nil
+}
+
+func (a authService) VerifyRegisterOTP(ctx context.Context, data dto.VerifyOTPRequest) error {
+	logrus.Infof("Verifying OTP for email: %s", data.Email)
+
+	valid, err := a.otpRepository.VerifyOTP(ctx, data.Email, data.OTP)
+	if err != nil || !valid {
+		logrus.Warnf("Invalid or expired OTP for email: %s", data.Email)
+		return errors.New("invalid or expired OTP")
+	}
+
+	err = a.otpRepository.DeleteOTP(ctx, data.Email)
+	if err != nil {
+		logrus.Errorf("Failed to delete OTP for email: %s", data.Email)
+		return errors.New("failed to delete OTP")
+	}
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(data.Password), bcrypt.DefaultCost)
 	if err != nil {
-		logrus.Error("Register error: failed to hash password:", err)
+		logrus.Error("Failed to hash password:", err)
 		return errors.New("failed to hash password")
 	}
 
@@ -75,7 +119,7 @@ func (a authService) Register(ctx context.Context, data dto.RegisterRequest) err
 
 	err = a.userRepository.Save(ctx, user)
 	if err != nil {
-		logrus.Error("Register error: failed to save user:", err)
+		logrus.Errorf("Failed to save user: %v", err)
 		return errors.New("failed to save user")
 	}
 
@@ -157,10 +201,7 @@ func sendOTPByEmail(email, otp string) error {
 	smtpPort := 587
 
 	message := fmt.Sprintf(`
-	Subject: 🔐 Reset Password - OTP Verification
-	
-	MIME-version: 1.0;
-	Content-Type: text/html; charset="UTF-8";
+	Subject: 🔐 OTP Verification
 	
 	<html>
 	<head>
@@ -185,12 +226,12 @@ func sendOTPByEmail(email, otp string) error {
 	</head>
 	<body>
 		<div class="container">
-			<h2>🔒 OTP Verification for Password Reset</h2>
+			<h2>🔒 OTP Verification</h2>
 			<p>Hello,</p>
-			<p>We received a request to reset your account password. Use the following OTP code to proceed with the password reset process:</p>
+			<p>Use the following OTP code to proceed with the verification process:</p>
 			<p class="otp">%s</p>
 			<p>Do not share this code with anyone for the security of your account.</p>
-			<p>If you did not request a password reset, please ignore this email.</p>
+			<p>If you did not request this, please ignore this email.</p>
 			<p class="footer">© 2025 PeakForm. All Rights Reserved.</p>
 		</div>
 	</body>

@@ -6,17 +6,25 @@ type AuthRequest struct {
 }
 
 type AuthResponse struct {
-	Token string `json:"token"`
+	UserID string `json:"user_id"`
+	Name   string `json:"name"`
+	Email  string `json:"email"`
+	Token  string `json:"token"`
 }
 
 type RegisterRequest struct {
-	Name     string `json:"name" validate:"required"`
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required"`
+	Email string `json:"email" validate:"required,email"`
 }
 
 type RegisterResponse struct {
 	Message string `json:"message"`
+}
+
+type VerifyOTPRequest struct {
+	Email    string `json:"email" validate:"required,email"`
+	OTP      string `json:"otp" validate:"required,len=6"`
+	Name     string `json:"name" validate:"required"`
+	Password string `json:"password" validate:"required"`
 }
 
 type ForgotPasswordRequest struct {
