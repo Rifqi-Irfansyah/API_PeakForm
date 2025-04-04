@@ -22,6 +22,7 @@ func NewAuthApi(app *fiber.App, authService domain.AuthService) {
 
 	app.Post("/auth", aa.Login)
 	app.Post("/register", aa.Register)
+	app.Post("/register/verify-otp", aa.VerifyRegisterOTP)
 	app.Post("/auth/forgot-password", aa.ForgotPassword)
 	app.Post("/auth/reset-password", aa.ResetPassword)
 }
@@ -93,17 +94,52 @@ func (aa authApi) Register(ctx *fiber.Ctx) error {
 
 	err := aa.authService.Register(c, req)
 	if err != nil {
-		if errors.Is(err, context.DeadlineExceeded) {
-			return ctx.Status(http.StatusRequestTimeout).JSON(fiber.Map{
-				"status":  "error",
-				"message": "Request timed out",
-			})
-		}
+		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Registration failed",
+			"details": err.Error(),
+		})
+	}
+	return ctx.Status(http.StatusOK).JSON(fiber.Map{
+		"status":  "success",
+		"message": "Registration successful, OTP sent",
+	})
+}
+
+func (aa authApi) VerifyRegisterOTP(ctx *fiber.Ctx) error {
+	c, cancel := context.WithTimeout(ctx.Context(), 10*time.Second)
+	defer cancel()
+
+	var req dto.VerifyOTPRequest
+	if err := ctx.BodyParser(&req); err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Invalid request body",
+			"details": err.Error(),
+		})
+	}
+
+	fails := util.Validate(req)
+	if len(fails) > 0 {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"status":  "error",
+			"message": "validation failed",
+			"details": fails,
+		})
+	}
+
+	err := aa.authService.VerifyRegisterOTP(c, req)
+	if err != nil {
+		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"status":  "error",
+			"message": "OTP verification failed",
+			"details": err.Error(),
+		})
 	}
 
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
 		"status":  "success",
-		"message": "Registration successful",
+		"message": "OTP verified, registration complete",
 	})
 }
 

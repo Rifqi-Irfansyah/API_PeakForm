@@ -20,6 +20,7 @@ func main() {
 	dbConnection := connection.GetDatabase(cnf.Database)
 
 	app := fiber.New()
+	app.Static("/", "./assets") 
 
 	err := dbConnection.AutoMigrate(&domain.User{})
 	if err != nil {
