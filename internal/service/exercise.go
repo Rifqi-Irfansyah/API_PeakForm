@@ -24,7 +24,7 @@ func (s *exerciseService) CreateExercise(ctx context.Context, req dto.CreateExer
 		Equipment:    domain.Equipment(req.Equipment),
 		Difficulty:   domain.DifficultyLevel(req.Difficulty),
 		Instructions: req.Instructions,
-		Gif:          req.Gif,
+		Image:        req.Image,
 	}
 	err := s.repo.Create(ctx, exercise)
 	if err != nil {
@@ -84,8 +84,8 @@ func (s *exerciseService) UpdateExercise(ctx context.Context, req dto.UpdateExer
 	if req.Instructions != "" {
 		existingExercise.Instructions = req.Instructions
 	}
-	if req.Gif != "" {
-		existingExercise.Gif = req.Gif
+	if req.Image != "" {
+		existingExercise.Image = req.Image
 	}
 
 	err = s.repo.Update(ctx, existingExercise)

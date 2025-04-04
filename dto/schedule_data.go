@@ -40,7 +40,7 @@ type ExerciseResponse struct {
 	Equipment    string `json:"equipment"`
 	Difficulty   string `json:"difficulty"`
 	Instructions string `json:"instructions"`
-	Gif          string `json:"gif"`
+	Image        string `json:"image"`
 }
 
 type ScheduleResponse struct {

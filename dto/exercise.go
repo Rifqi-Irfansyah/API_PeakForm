@@ -7,7 +7,7 @@ type CreateExerciseRequest struct {
 	Equipment    string `json:"equipment" validate:"required"`
 	Difficulty   string `json:"difficulty" validate:"required"`
 	Instructions string `json:"instructions" validate:"required"`
-	Gif          string `json:"gif" validate:"required"`
+	Image        string `json:"image" validate:"required"`
 }
 
 type UpdateExerciseRequest struct {
@@ -18,5 +18,5 @@ type UpdateExerciseRequest struct {
 	Equipment    string `json:"equipment"`
 	Difficulty   string `json:"difficulty"`
 	Instructions string `json:"instructions"`
-	Gif          string `json:"gif"`
+	Image        string `json:"image"`
 }

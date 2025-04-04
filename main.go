@@ -11,6 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/gofiber/fiber/v2"
+	// jwtMiddleware "github.com/gofiber/jwt/v3"
 	"net/http"
 )
 
@@ -19,6 +20,7 @@ func main() {
 	dbConnection := connection.GetDatabase(cnf.Database)
 
 	app := fiber.New()
+	app.Static("/", "./assets") 
 
 	err := dbConnection.AutoMigrate(&domain.User{})
 	if err != nil {

@@ -63,8 +63,9 @@ func (sa scheduleApi) Update(ctx *fiber.Ctx) error {
 	defer cancel()
 
 	var req dto.UpdateScheduleRequest
-	req.ID = ctx.Query("id")
-	req.Day = ctx.QueryInt("day")
+	if err := ctx.BodyParser(&req); err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
 
 	fails := util.Validate(req)
 	if len(fails) > 0 {
@@ -119,25 +120,25 @@ func (sa scheduleApi) FindByUID(ctx *fiber.Ctx) error {
 	_, cancel := context.WithTimeout(ctx.Context(), 10*time.Second)
 	defer cancel()
 
-	var req dto.ScheduleRequest
-	if err := ctx.BodyParser(&req); err != nil {
+	UID := ctx.Query("UID")
+	if UID == "" {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
 			"status":  "error",
 			"message": "Invalid request body",
-			"details": err.Error(),
+			"details": "UID Required",
 		})
 	}
 
-	fails := util.Validate(req)
-	if len(fails) > 0 {
-		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"status":  "error",
-			"message": "validation failed",
-			"details": fails,
-		})
-	}
+	// fails := util.Validate(UID)
+	// if len(fails) > 0 {
+	// 	return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+	// 		"status":  "error",
+	// 		"message": "validation failed",
+	// 		"details": fails,
+	// 	})
+	// }
 
-	res, err := sa.scheduleService.FindByUID(ctx.Context(), req.UID)
+	res, err := sa.scheduleService.FindByUID(ctx.Context(), UID)
 	if err != nil {
 		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"status":  "error",
