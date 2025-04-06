@@ -460,6 +460,47 @@ func AddExercise(db *gorm.DB) {
 			Instructions: "Lie back on an incline bench with a dumbbell in each hand atop your thighs. The palms of your hands will be facing each other. Then, using your thighs to help push the dumbbells up, lift the dumbbells one at a time so that you can hold them at shoulder width. Once you have the dumbbells raised to shoulder width, rotate your wrists forward so that the palms of your hands are facing away from you. This will be your starting position. Be sure to keep full control of the dumbbells at all times. Then breathe out and push the dumbbells up with your chest. Lock your arms at the top, hold for a second, and then start slowly lowering the weight. Tip Ideally, lowering the weights should take about twice as long as raising them. Repeat the movement for the prescribed amount of repetitions. When you are done, place the dumbbells back on your thighs and then on the floor. This is the safest manner to release the dumbbells.  Variations: You can use several angles on the incline bench if the bench you are using is adjustable. Another variation of this exercise is to perform it with the palms of the hands facing each other. Also, you can perform the exercise with the palms facing each other and then twisting the wrist as you lift the dumbbells so that at the top of the movement the palms are facing away from the body. I personally do not use this variation very often as it seems to be hard on my shoulders.",
 			Image:        "grip-incline-dumbbell-bench-press.svg",
 		},
+		{
+			ID:           170,
+			Name:         "Single-arm palm-in dumbbell shoulder press",
+			Type:         "strength",
+			Muscle:       "shoulders",
+			Equipment:    "dumbbell",
+			Difficulty:   "intermediate",
+			Instructions: "Start by having a dumbbell in one hand with your arm fully extended to the side using a neutral grip. Use your other arm to hold on to an incline bench to keep your balance. Your feet should be shoulder width apart from each other. Now slowly lift the dumbbell up until you create a 90 degree angle with your arm. Note: Your forearm should be perpendicular to the floor. Continue to maintain a neutral grip throughout the entire exercise. Slowly lift the dumbbell up until your arm is fully extended. This the starting position. While inhaling lower the weight down until your arm is at a 90 degree angle again. Feel the contraction for a second and then lift the weight back up towards the starting position while exhaling. Remember to hold on to the incline bench and keep your feet positioned to keep balance during the exercise. Repeat for the recommended amount of repetitions. Switch arms and repeat the exercise.  Variation: This exercise can be performed with dumbbells in each arm as the dumbbells will help to keep you balanced. This is another great way to add variety to your routines and keep them interesting.",
+			Image:        "shoulder-press.svg",
+		},
+		{
+			ID:           171,
+			Name:         "Single-arm lateral raise",
+			Type:         "strength",
+			Muscle:       "shoulders",
+			Equipment:    "dumbbell",
+			Difficulty:   "intermediate",
+			Instructions: "Pick a dumbbell and place it in one of your hands. Your non lifting hand should be used to grab something steady such as an incline bench press. Lean towards your lifting arm and away from the hand that is gripping the incline bench as this will allow you to keep your balance. Stand with a straight torso and have the dumbbell by your side at arm’s length with the palm of the hand facing you. This will be your starting position. While maintaining the torso stationary (no swinging), lift the dumbbell to your side with a slight bend on the elbow and your hand slightly tilted forward as if pouring water in a glass. Continue to go up until you arm is parallel to the floor. Exhale as you execute this movement and pause for a second at the top. Lower the dumbbell back down slowly to the starting position as you inhale. Repeat for the recommended amount of repetitions. Switch arms and repeat the exercise.  Variations: This exercise can also be performed sitting down.",
+			Image:        "lateral-raise.svg",
+		},
+		{
+			ID:           172,
+			Name:         "Overhead dumbbell front raise",
+			Type:         "strength",
+			Muscle:       "shoulders",
+			Equipment:    "dumbbell",
+			Difficulty:   "intermediate",
+			Instructions: "Hold the dumbbells in front of your thighs, palms facing your thighs. Keep your arms straight with a slight bend at the elbows but keep them locked. This will be your starting position. Raise the dumbbells in a semicircular motion to arm's length overhead as you exhale. Slowly return to the starting position using the same path as you inhale. Repeat for the recommended amount of repetitions.  Variation: You can perform this exercise with a barbell or by alternating dumbbells.",
+			Image:        "front-raise.svg",
+		},
+		{
+			ID:           173,
+			Name:         "Single-arm incline rear delt raise",
+			Type:         "strength",
+			Muscle:       "shoulders",
+			Equipment:    "dumbbell",
+			Difficulty:   "intermediate",
+			Instructions: "While holding a dumbbell in one hand, lay with your chest down on a slightly inclined (around 15 degrees when measured from the floor) adjustable bench. The other hand can be used to hold to the leg of the bench for stability. Position the palm of the hand that is holding the dumbbell in a neutral manner (palms facing your torso) as you keep the arm extended with the elbow slightly bent. This will be your starting position. Now raise the arm with the dumbbell to the side until your elbow is at shoulder height and your arm is roughly parallel to the floor as you exhale. Tip: Maintain your arm perpendicular to the torso while keeping your arm extended throughout the movement. Also, keep the contraction at the top for a second. Slowly lower the dumbbell to the starting position as you inhale. Repeat for the recommended amount of repetitions.  Variations: You can perform this exercise with both arms at the same time and also keeping the palms of the hands facing back as opposed to facing your torso.",
+			Image:        "delt-raise.svg",
+		},
+		
 	}
 
 	for _, exercise := range exercises {

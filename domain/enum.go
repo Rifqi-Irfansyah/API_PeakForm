@@ -22,6 +22,7 @@ const (
 	Quadriceps MuscleGroup = "quadriceps"
 	Traps      MuscleGroup = "traps"
 	Triceps    MuscleGroup = "triceps"
+	Shoulders  MuscleGroup = "shoulders"
 )
 
 type Equipment string

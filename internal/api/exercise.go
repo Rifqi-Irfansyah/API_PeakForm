@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"log"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -34,71 +35,78 @@ func NewExerciseAPI(app *fiber.App, service domain.ExerciseService) *ExerciseAPI
 const baseURL = "http://localhost:3000"
 
 func (api *ExerciseAPI) CreateExercise(c *fiber.Ctx) error {
-	ctx := context.Background()
+    ctx := context.Background()
 
-	var req dto.CreateExerciseRequest
-	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Invalid request body",
-		})
-	}
+    var req dto.CreateExerciseRequest
+    if err := c.BodyParser(&req); err != nil {
+        log.Printf("Failed to parse request body: %v", err)
+        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+            "status":  "error",
+            "message": "Invalid request body",
+        })
+    }
 
-	fails := util.Validate(req)
-	if len(fails) > 0 {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"status":  "error",
-			"message": "validation failed",
-			"details": fails,
-		})
-	}
+    file, err := c.FormFile("image")
+    if err == nil {
+        log.Printf("File uploaded: %s, Size: %d bytes", file.Filename, file.Size)
 
-	file, err := c.FormFile("gif")
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":  "error",
-			"message": "GIF file is required",
-		})
-	}
+        ext := filepath.Ext(file.Filename)
+        if strings.ToLower(ext) != ".svg" {
+            log.Printf("Invalid file format: %s", ext)
+            return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+                "status":  "error",
+                "message": "Invalid file format. Only SVG files are allowed",
+            })
+        }
 
-	ext := strings.ToLower(filepath.Ext(file.Filename))
-	if ext != ".gif" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Invalid file format. Only GIF is allowed",
-		})
-	}
+        savePath := filepath.Join("assets", "exercises", file.Filename)
+        if err := c.SaveFile(file, savePath); err != nil {
+            log.Printf("Failed to save file: %v", err)
+            return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+                "status":  "error",
+                "message": "Failed to save file",
+            })
+        }
 
-	savePath := filepath.Join("assets", "exercises", file.Filename)
-	if err := c.SaveFile(file, savePath); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Failed to save GIF file",
-		})
-	}
+        req.Image = fmt.Sprintf("%s/static/exercises/%s", baseURL, file.Filename)
+        log.Printf("File saved, req.Image set to: %s", req.Image)
+    } else {
+        log.Printf("No file uploaded or error reading file: %v", err)
+    }
 
-	req.Image = fmt.Sprintf("%s/static/exercises/%s", baseURL, file.Filename)
+    log.Printf("Request before validation: %+v", req)
 
-	if err := api.service.CreateExercise(ctx, req); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Failed to create exercise",
-		})
-	}
+    fails := util.Validate(req)
+    if len(fails) > 0 {
+        log.Printf("Validation failed: %v", fails)
+        return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+            "status":  "error",
+            "message": "validation failed",
+            "details": fails,
+        })
+    }
 
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"status":  "success",
-		"message": "Exercise created successfully",
-		"data": fiber.Map{
-			"name":         req.Name,
-			"type":         req.Type,
-			"muscle":       req.Muscle,
-			"equipment":    req.Equipment,
-			"difficulty":   req.Difficulty,
-			"instructions": req.Instructions,
-			"image":          req.Image,
-		},
-	})
+    if err := api.service.CreateExercise(ctx, req); err != nil {
+        log.Printf("Failed to create exercise: %v", err)
+        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+            "status":  "error",
+            "message": "Failed to create exercise",
+        })
+    }
+
+    return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+        "status":  "success",
+        "message": "Exercise created successfully",
+        "data": fiber.Map{
+            "name":         req.Name,
+            "type":         req.Type,
+            "muscle":       req.Muscle,
+            "equipment":    req.Equipment,
+            "difficulty":   req.Difficulty,
+            "instructions": req.Instructions,
+            "image":        req.Image,
+        },
+    })
 }
 
 func (api *ExerciseAPI) GetExercises(c *fiber.Ctx) error {
