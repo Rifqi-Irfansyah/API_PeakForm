@@ -201,7 +201,6 @@ func sendOTPByEmail(email, otp string) error {
 	smtpPort := 587
 
 	message := fmt.Sprintf(`
-	Subject: 🔐 OTP Verification
 	
 	<html>
 	<head>
@@ -240,7 +239,7 @@ func sendOTPByEmail(email, otp string) error {
 	mailer := gomail.NewMessage()
 	mailer.SetHeader("From", from)
 	mailer.SetHeader("To", email)
-	mailer.SetHeader("Subject", "🔐 Your OTP Code for Password Reset")
+	mailer.SetHeader("Subject", "🔐 Your OTP Code for Verification")
 	mailer.SetBody("text/html", message)
 
 	dialer := gomail.NewDialer(smtpHost, smtpPort, from, password)
