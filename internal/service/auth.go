@@ -276,3 +276,38 @@ func generateJWT(userID string, secretKey string, expMinutes int) (string, error
 	logrus.Infof("JWT generated successfully for user ID: %s", userID)
 	return tokenStr, nil
 }
+
+func (a authService) ChangePassword(ctx context.Context, data dto.ChangePasswordRequest) error {
+	logrus.Infof("Attempting to change password for user ID: %s", data.ID)
+
+	user, err := a.userRepository.FindByID(ctx, data.ID)
+	if err != nil {
+		logrus.Errorf("Failed to find user: %v", err)
+		return errors.New("failed to find user")
+	}
+
+	if user.ID == "" {
+		logrus.Warnf("User not found for ID: %s", data.ID)
+		return errors.New("user not found")
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(data.OldPassword)); err != nil {
+		logrus.Warnf("Old password does not match for user ID: %s", data.ID)
+		return errors.New("old password is incorrect")
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(data.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		logrus.Errorf("Failed to hash new password for user ID: %s, error: %v", data.ID, err)
+		return errors.New("failed to hash new password")
+	}
+
+	err = a.userRepository.UpdatePassword(ctx, user.Email, string(hashedPassword))
+	if err != nil {
+		logrus.Errorf("Failed to update password for user ID: %s, error: %v", data.ID, err)
+		return errors.New("failed to update password")
+	}
+
+	logrus.Infof("Password changed successfully for user ID: %s", data.ID)
+	return nil
+}

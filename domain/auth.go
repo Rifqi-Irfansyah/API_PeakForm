@@ -11,4 +11,5 @@ type AuthService interface {
 	VerifyRegisterOTP(ctx context.Context, data dto.VerifyOTPRequest) error
 	ForgotPassword(ctx context.Context, email string) error
 	ResetPassword(ctx context.Context, data dto.ResetPasswordRequest) error
+	ChangePassword(ctx context.Context, data dto.ChangePasswordRequest) error
 }
