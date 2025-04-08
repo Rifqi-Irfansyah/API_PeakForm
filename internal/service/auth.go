@@ -25,7 +25,6 @@ func NewAuthService(cfg *config.Config, userRepository domain.UserRepository, ot
 	return authService{cfg: cfg, userRepository: userRepository, otpRepository: otpRepository}
 }
 
-// Login authenticates a user by verifying the provided credentials and generates a JWT token upon success.
 func (a authService) Login(ctx context.Context, data dto.AuthRequest) (dto.AuthResponse, error) {
 	logrus.Infof("Attempting login for user: %s", data.Email)
 	user, err := a.userRepository.FindByEmail(ctx, data.Email)
@@ -253,8 +252,6 @@ func sendOTPByEmail(email, otp string) error {
 	return nil
 }
 
-// generateJWT generates a JWT token string for a given user ID, secret key, and expiration time in minutes.
-// It returns the signed token string or an error if signing fails.
 func generateJWT(userID string, secretKey string, expMinutes int) (string, error) {
 	if secretKey == "" {
 		logrus.Error("Secret key is empty")
@@ -310,4 +307,84 @@ func (a authService) ChangePassword(ctx context.Context, data dto.ChangePassword
 
 	logrus.Infof("Password changed successfully for user ID: %s", data.ID)
 	return nil
+}
+
+func (a authService) CheckToken(ctx context.Context, token string) error {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	parsedToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("unexpected signing method")
+		}
+		return []byte(a.cfg.Jwt.Key), nil
+	})
+
+	if err != nil || !parsedToken.Valid {
+		logrus.Warnf("Invalid token: %v", err)
+		return errors.New("invalid token")
+	}
+
+	claims, ok := parsedToken.Claims.(jwt.MapClaims)
+	if !ok {
+		logrus.Error("Failed to parse token claims")
+		return errors.New("failed to parse token claims")
+	}
+
+	exp, ok := claims["exp"].(float64)
+	if !ok || time.Unix(int64(exp), 0).Before(time.Now()) {
+		logrus.Warn("Token has expired")
+		return errors.New("token has expired")
+	}
+
+	logrus.Infof("Token is valid and not expired")
+	return nil
+}
+
+func (a authService) GetUserByToken(ctx context.Context, token string) (dto.AuthResponse, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	parsedToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("unexpected signing method")
+		}
+		return []byte(a.cfg.Jwt.Key), nil
+	})
+
+	if err != nil || !parsedToken.Valid {
+		logrus.Warnf("Invalid token: %v", err)
+		return dto.AuthResponse{}, errors.New("invalid token")
+	}
+
+	claims, ok := parsedToken.Claims.(jwt.MapClaims)
+	if !ok {
+		logrus.Error("Failed to parse token claims")
+		return dto.AuthResponse{}, errors.New("failed to parse token claims")
+	}
+
+	exp, ok := claims["exp"].(float64)
+	if !ok || time.Unix(int64(exp), 0).Before(time.Now()) {
+		logrus.Warn("Token has expired")
+		return dto.AuthResponse{}, errors.New("token has expired")
+	}
+
+	userID, ok := claims["id"].(string)
+	if !ok {
+		logrus.Error("User ID not found in token claims")
+		return dto.AuthResponse{}, errors.New("user ID not found in token claims")
+	}
+
+	user, err := a.userRepository.FindByID(ctx, userID)
+	if err != nil {
+		logrus.Errorf("Failed to find user by ID: %v", err)
+		return dto.AuthResponse{}, errors.New("failed to find user")
+	}
+
+	logrus.Infof("User retrieved successfully from token: %s", userID)
+	return dto.AuthResponse{
+		UserID: user.ID,
+		Name:   user.Name,
+		Email:  user.Email,
+	}, nil
 }

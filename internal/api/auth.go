@@ -26,6 +26,8 @@ func NewAuthApi(app *fiber.App, authService domain.AuthService) {
 	app.Post("/auth/forgot-password", aa.ForgotPassword)
 	app.Post("/auth/reset-password", aa.ResetPassword)
 	app.Post("/change-password", aa.ChangePassword)
+	app.Get("/auth/check-token/:token", aa.CheckToken)
+	app.Get("/auth/user/:token", aa.GetUserByToken)
 }
 
 func (aa authApi) Login(ctx *fiber.Ctx) error {
@@ -239,5 +241,54 @@ func (aa authApi) ChangePassword(ctx *fiber.Ctx) error {
 	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
 		"status":  "success",
 		"message": "Password changed successfully",
+	})
+}
+
+func (aa authApi) CheckToken(ctx *fiber.Ctx) error {
+	token := ctx.Params("token")
+	if token == "" {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Token is required",
+		})
+	}
+
+	err := aa.authService.CheckToken(ctx.Context(), token)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Invalid token",
+			"details": err.Error(),
+		})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status":  "success",
+		"message": "Token is valid",
+	})
+}
+
+func (aa authApi) GetUserByToken(ctx *fiber.Ctx) error {
+	token := ctx.Params("token")
+	if token == "" {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Token is required",
+		})
+	}
+
+	res, err := aa.authService.GetUserByToken(ctx.Context(), token)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Failed to get user by token",
+			"details": err.Error(),
+		})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status":  "success",
+		"message": "User retrieved successfully",
+		"data":    res,
 	})
 }

@@ -12,4 +12,6 @@ type AuthService interface {
 	ForgotPassword(ctx context.Context, email string) error
 	ResetPassword(ctx context.Context, data dto.ResetPasswordRequest) error
 	ChangePassword(ctx context.Context, data dto.ChangePasswordRequest) error
+	CheckToken(ctx context.Context, token string) error
+	GetUserByToken(ctx context.Context, token string) (dto.AuthResponse, error)
 }
