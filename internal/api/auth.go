@@ -199,7 +199,11 @@ func (aa authApi) ResetPassword(ctx *fiber.Ctx) error {
 
 	err := aa.authService.ResetPassword(ctx.Context(), req)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Failed to reset password",
+			"details": err.Error(),
+		})
 	}
 
 	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
