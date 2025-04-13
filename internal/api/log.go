@@ -16,7 +16,7 @@ type logApi struct {
 func NewLogApi(app *fiber.App, logService domain.LogService) {
 	la := logApi{logService: logService}
 
-	app.Post("/logs", la.Create)
+	app.Post("/logs/create", la.Create)
 	app.Get("/logs/:id", la.FindByUserID)
 	app.Get("/logs/:id/summary", la.GetUserWorkoutSummary)
 
