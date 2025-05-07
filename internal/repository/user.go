@@ -64,3 +64,23 @@ func (u userRepository) UpdatePassword(ctx context.Context, email string, passwo
 	logrus.Infof("Password successfully updated for email: %s", email)
 	return nil
 }
+
+func (u userRepository) UpdatePoint(ctx context.Context, id string, point int) error {
+	err := u.db.WithContext(ctx).Model(&domain.User{}).Where("id = ?", id).Update("point", point).Error
+	if err != nil {
+		logrus.Errorf("Error updating point for user ID: %s, error: %v", id, err)
+		return err
+	}
+	logrus.Infof("Point successfully updated for user ID: %s", id)
+	return nil
+}
+
+func (u userRepository) UpdateStreak(ctx context.Context, id string, streak int) error {
+	err := u.db.WithContext(ctx).Model(&domain.User{}).Where("id = ?", id).Update("streak", streak).Error
+	if err != nil {
+		logrus.Errorf("Error updating streak for user ID: %s, error: %v", id, err)
+		return err
+	}
+	logrus.Infof("Streak successfully updated for user ID: %s", id)
+	return nil
+}
