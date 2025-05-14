@@ -3,6 +3,7 @@ package repository
 import (
 	"api-peak-form/domain"
 	"context"
+	"errors"
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -36,4 +37,25 @@ func (l logRepository) FindByUserID(ctx context.Context, userID string) ([]domai
 	}
 	logrus.Infof("Fetched %d logs for user ID: %s", len(logs), userID)
 	return logs, nil
+}
+
+func (l logRepository) FindLastByUserID(ctx context.Context, userID string) (domain.Log, error) {
+	var log domain.Log
+	err := l.db.WithContext(ctx).
+		Where("user_id = ?", userID).
+		Order("timestamp DESC").
+		First(&log).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		logrus.Infof("No logs found for user ID: %s", userID)
+		return domain.Log{}, nil
+	}
+
+	if err != nil {
+		logrus.Errorf("Failed to fetch last log for user ID %s: %v", userID, err)
+		return domain.Log{}, fmt.Errorf("failed to fetch last log for user ID %s: %w", userID, err)
+	}
+
+	logrus.Infof("Fetched last log for user ID: %s", userID)
+	return log, nil
 }

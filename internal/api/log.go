@@ -10,8 +10,8 @@ import (
 )
 
 type logApi struct {
-	logService domain.LogService
-	userService domain.UserService
+	logService      domain.LogService
+	userService     domain.UserService
 	exerciseService domain.ExerciseService
 }
 
@@ -55,30 +55,15 @@ func (la logApi) Create(ctx *fiber.Ctx) error {
 	}
 
 	exercise, err := la.exerciseService.GetExerciseByID(ctx.Context(), req.ExerciseID)
-
 	if err != nil {
-		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"status":  "error",
-			"message": "Exercise not found",
+			"message": "Failed to fetch exercise details",
 			"details": err.Error(),
 		})
 	}
 
-	point := 0
-	switch exercise.Difficulty {
-	case domain.Beginner:
-		point = 1
-	case domain.Intermediate:
-		point = 2 
-	case domain.Expert:
-		point = 3
-	default:
-		point = 0
-	}
-
-	point = point * req.Repetition * req.Set
-
-	err = la.userService.UpdatePoint(ctx.Context(), req.UserID, point)
+	points, err := la.userService.UpdatePoint(ctx.Context(), req.UserID, exercise.Difficulty, req.Repetition, req.Set)
 
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -100,7 +85,7 @@ func (la logApi) Create(ctx *fiber.Ctx) error {
 	return ctx.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"status":  "success",
 		"message": "Log created successfully",
-		"points": point,
+		"points":  points,
 		"data":    req,
 	})
 }
