@@ -35,6 +35,6 @@ func (s statsApi) GetUserStats(ctx *fiber.Ctx) error {
 	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
 		"status":  "success",
 		"message": "Stats fetched successfully",
-		"data": summary,
+		"data":    summary,
 	})
 }

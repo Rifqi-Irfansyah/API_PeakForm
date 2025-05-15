@@ -9,6 +9,7 @@ type AuthResponse struct {
 	UserID string `json:"user_id"`
 	Name   string `json:"name"`
 	Email  string `json:"email"`
+	PhotoURL  string `json:"photo"`
 	Token  string `json:"token"`
 }
 

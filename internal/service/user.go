@@ -77,3 +77,19 @@ func (u userService) UpdateStreak(ctx context.Context, id string, streak bool) e
 	logrus.Infof("Point and streak updated successfully for user ID: %s", id)
 	return nil
 }
+
+func (u userService) UpdatePhoto(ctx context.Context, id string, photoURL string) error {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	logrus.Infof("Updating photo for user ID: %s", id)
+
+	err := u.userRepository.UpdatePhoto(ctx, id, photoURL)
+	if err != nil {
+		logrus.Errorf("Failed to update photo for user ID %s: %v", id, err)
+		return fmt.Errorf("failed to update photo for user ID %s: %w", id, err)
+	}
+
+	logrus.Infof("Photo updated successfully for user ID: %s", id)
+	return nil
+}

@@ -10,6 +10,7 @@ type User struct {
 	Schedules []Schedule `gorm:"foreignKey:UID"`
 	Point	  int        `gorm:"default:0"`
 	Streak	  int        `gorm:"default:0"`
+	PhotoURL  string     `gorm:"type:text"`
 }
 
 type UserRepository interface {
@@ -19,9 +20,11 @@ type UserRepository interface {
 	UpdatePassword(ctx context.Context, email string, password string) error
 	UpdatePoint(ctx context.Context, id string, point int) error
 	UpdateStreak(ctx context.Context, id string, streak int) error
+	UpdatePhoto(ctx context.Context, id string, photoURL string) error
 }
 
 type UserService interface {
 	UpdatePoint(ctx context.Context, id string, point int) error
 	UpdateStreak(ctx context.Context, id string, streak bool) error
+	UpdatePhoto(ctx context.Context, id string, photoURL string) error
 }

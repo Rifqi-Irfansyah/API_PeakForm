@@ -386,5 +386,6 @@ func (a authService) GetUserByToken(ctx context.Context, token string) (dto.Auth
 		UserID: user.ID,
 		Name:   user.Name,
 		Email:  user.Email,
+		PhotoURL: user.PhotoURL,
 	}, nil
 }
