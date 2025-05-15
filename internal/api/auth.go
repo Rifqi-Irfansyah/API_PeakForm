@@ -235,7 +235,11 @@ func (aa authApi) ChangePassword(ctx *fiber.Ctx) error {
 
 	err := aa.authService.ChangePassword(ctx.Context(), req)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Failed to change password",
+			"details": err.Error(),
+		})
 	}
 
 	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
