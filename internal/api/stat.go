@@ -27,13 +27,14 @@ func (s statsApi) GetUserStats(ctx *fiber.Ctx) error {
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"status":  "error",
-			"message": err.Error(),
+			"message": "Failed to fetch stats for user ID",
+			"details": err.Error(),
 		})
 	}
 
 	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
 		"status":  "success",
 		"message": "Stats fetched successfully",
-		"data":    summary,
+		"data": summary,
 	})
 }
