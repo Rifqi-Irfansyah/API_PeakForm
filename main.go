@@ -20,7 +20,7 @@ func main() {
 	dbConnection := connection.GetDatabase(cnf.Database)
 
 	app := fiber.New()
-	app.Static("/", "./assets") 
+	app.Static("/", "./assets")
 
 	err := dbConnection.AutoMigrate(&domain.User{})
 	if err != nil {
@@ -47,7 +47,7 @@ func main() {
 	exerciseService := service.NewExerciseService(exerciseRepo)
 	authService := service.NewAuthService(cnf, userRepository, otpRepository)
 	logService := service.NewLogService(logRepository, userRepository)
-	userService := service.NewUserService(userRepository)
+	userService := service.NewUserService(userRepository, scheduleRepository, logRepository)
 
 	// endpoints that do not require a token
 	api.NewAuthApi(app, authService)
@@ -55,7 +55,7 @@ func main() {
 	// endpoints that require a token
 	//app.Use(jwtMid)
 	api.NewScheduleApi(app, scheduleService)
-	api.NewLogApi(app, logService, userService, exerciseService) 
+	api.NewLogApi(app, logService, userService, exerciseService)
 	api.NewExerciseAPI(app, exerciseService)
 
 	logrus.Infof("Starting server at %s:%s", cnf.Server.Host, cnf.Server.Port)
