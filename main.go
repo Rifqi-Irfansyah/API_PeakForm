@@ -20,7 +20,7 @@ func main() {
 	dbConnection := connection.GetDatabase(cnf.Database)
 
 	app := fiber.New()
-	app.Static("/", "./assets") 
+	app.Static("/", "./assets")
 
 	err := dbConnection.AutoMigrate(&domain.User{})
 	if err != nil {
@@ -48,7 +48,7 @@ func main() {
 	authService := service.NewAuthService(cnf, userRepository, otpRepository)
 	logService := service.NewLogService(logRepository, userRepository)
 	statsService := service.NewStatService(logRepository)
-	userService := service.NewUserService(userRepository)
+	userService := service.NewUserService(userRepository, scheduleRepository, logRepository)
 
 	// endpoints that do not require a token
 	api.NewAuthApi(app, authService)
