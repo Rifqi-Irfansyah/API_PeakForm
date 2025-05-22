@@ -19,6 +19,9 @@ COPY --from=builder /app/app .
 # Copy .env jika ada
 COPY --from=builder /app/.env .
 
+# ✅ Copy folder assets ke image runtime
+COPY --from=builder /app/assets ./assets
+
 EXPOSE 8080
 
 CMD ["./app"]
