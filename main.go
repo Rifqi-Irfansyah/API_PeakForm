@@ -47,7 +47,7 @@ func main() {
 	exerciseService := service.NewExerciseService(exerciseRepo)
 	authService := service.NewAuthService(cnf, userRepository, otpRepository)
 	logService := service.NewLogService(logRepository, userRepository)
-	statsService := service.NewStatService(logRepository)
+	// statsService := service.NewStatService(logRepository)
 	userService := service.NewUserService(userRepository, scheduleRepository, logRepository)
 
 	// endpoints that do not require a token
@@ -57,8 +57,9 @@ func main() {
 	//app.Use(jwtMid)
 	api.NewScheduleApi(app, scheduleService)
 	api.NewLogApi(app, logService, userService, exerciseService)
-	api.NewStatsApi(app, statsService)
+	// api.NewStatsApi(app, statsService)
 	api.NewExerciseAPI(app, exerciseService)
+	api.NewStreakApi(app, userService)
 
 	logrus.Infof("Starting server at %s:%s", cnf.Server.Host, cnf.Server.Port)
 	_ = app.Listen(cnf.Server.Host + ":" + cnf.Server.Port)

@@ -2,8 +2,10 @@ package repository
 
 import (
 	"api-peak-form/domain"
+	"api-peak-form/dto"
 	"context"
 	"errors"
+
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
@@ -83,4 +85,24 @@ func (u userRepository) UpdateStreak(ctx context.Context, id string, streak int)
 	}
 	logrus.Infof("Streak successfully updated for user ID: %s", id)
 	return nil
+}
+
+func (u userRepository) GetAllUsersDesc(ctx context.Context) ([]dto.UserLeaderboardResponse, error) {
+	var users []domain.User
+	err := u.db.WithContext(ctx).Order("point DESC").Find(&users).Error
+	if err != nil {
+		logrus.Errorf("Error retrieving all users: %v", err)
+		return nil, err
+	}
+	logrus.Infof("Retrieved %d users", len(users))
+
+	var userResponses []dto.UserLeaderboardResponse
+	for _, user := range users {
+		userResponses = append(userResponses, dto.UserLeaderboardResponse{
+			Name:  user.Name,
+			Point: user.Point,
+		})
+	}
+
+	return userResponses, nil
 }
