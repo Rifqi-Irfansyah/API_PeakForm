@@ -84,3 +84,10 @@ func (u userRepository) UpdateStreak(ctx context.Context, id string, streak int)
 	logrus.Infof("Streak successfully updated for user ID: %s", id)
 	return nil
 }
+
+func (u *userRepository) UpdatePhoto(ctx context.Context, id string, photoURL string) error {
+	return u.db.WithContext(ctx).
+		Model(&domain.User{}).
+		Where("id = ?", id).
+		Update("photo_url", photoURL).Error
+}

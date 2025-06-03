@@ -21,6 +21,7 @@ func main() {
 
 	app := fiber.New()
 	app.Static("/", "./assets")
+	app.Static("/profile", "./public/profile")
 
 	err := dbConnection.AutoMigrate(&domain.User{})
 	if err != nil {
@@ -59,6 +60,7 @@ func main() {
 	api.NewLogApi(app, logService, userService, exerciseService)
 	api.NewStatsApi(app, statsService)
 	api.NewExerciseAPI(app, exerciseService)
+	api.NewUserApi(app, userService)
 
 	logrus.Infof("Starting server at %s:%s", cnf.Server.Host, cnf.Server.Port)
 	_ = app.Listen(cnf.Server.Host + ":" + cnf.Server.Port)

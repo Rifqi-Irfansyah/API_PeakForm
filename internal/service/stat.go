@@ -33,7 +33,7 @@ func (s statsService) GetStatsByUserID(ctx context.Context, userID string) (dto.
 		return dto.StatsSummary{}, fmt.Errorf("no logs found for user ID: %s", userID)
 	}
 
-	var totalSets, totalReps int
+	var totalSets, totalReps, totalExerciseCount int
 	exerciseCount := make(map[string]int)
 
 	for _, log := range logs {
@@ -41,14 +41,16 @@ func (s statsService) GetStatsByUserID(ctx context.Context, userID string) (dto.
 		totalReps += log.Repetition
 		exerciseID := fmt.Sprintf("%d", log.ExerciseID)
 		exerciseCount[exerciseID]++
+		totalExerciseCount++
 	}
 
-	logrus.Infof("Stats generated: Sets=%d, Reps=%d", totalSets, totalReps)
+	logrus.Infof("Stats generated: Sets=%d, Reps=%d, TotalExercises=%d", totalSets, totalReps, totalExerciseCount)
 
 	return dto.StatsSummary{
-		UserID:          userID,
-		TotalSets:       totalSets,
-		TotalReps:       totalReps,
-		ExerciseCounter: exerciseCount,
+		UserID:             userID,
+		TotalSets:          totalSets,
+		TotalReps:          totalReps,
+		ExerciseCounter:    exerciseCount,
+		TotalExerciseCount: totalExerciseCount,
 	}, nil
 }

@@ -8,8 +8,9 @@ type User struct {
 	Name      string     `gorm:"type:varchar(320);not null"`
 	Password  string     `gorm:"type:char(60);not null"`
 	Schedules []Schedule `gorm:"foreignKey:UID"`
-	Point     int        `gorm:"default:0"`
-	Streak    int        `gorm:"default:0"`
+	Point	  int        `gorm:"default:0"`
+	Streak	  int        `gorm:"default:0"`
+	PhotoURL  string     `gorm:"type:text"`
 }
 
 type UserRepository interface {
@@ -19,10 +20,12 @@ type UserRepository interface {
 	UpdatePassword(ctx context.Context, email string, password string) error
 	UpdatePoint(ctx context.Context, id string, point int) error
 	UpdateStreak(ctx context.Context, id string, streak int) error
+	UpdatePhoto(ctx context.Context, id string, photoURL string) error
 }
 
 type UserService interface {
 	UpdatePoint(ctx context.Context, id string, difficulty DifficultyLevel, rep int, set int) (int, error)
 	CheckStreak(ctx context.Context, id string) (int, error)
 	UpdateStreak(ctx context.Context, id string) (int, error)
+	UpdatePhoto(ctx context.Context, id string, photoURL string) error
 }
