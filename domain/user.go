@@ -1,6 +1,9 @@
 package domain
 
-import "context"
+import (
+	"api-peak-form/dto"
+	"context"
+)
 
 type User struct {
 	ID        string     `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
@@ -20,6 +23,7 @@ type UserRepository interface {
 	UpdatePassword(ctx context.Context, email string, password string) error
 	UpdatePoint(ctx context.Context, id string, point int) error
 	UpdateStreak(ctx context.Context, id string, streak int) error
+	GetAllUsersDesc(ctx context.Context) ([]dto.UserLeaderboardResponse, error)
 	UpdatePhoto(ctx context.Context, id string, photoURL string) error
 }
 
@@ -27,5 +31,6 @@ type UserService interface {
 	UpdatePoint(ctx context.Context, id string, difficulty DifficultyLevel, rep int, set int) (int, error)
 	CheckStreak(ctx context.Context, id string) (int, error)
 	UpdateStreak(ctx context.Context, id string) (int, error)
+	GetAllUsersDesc(ctx context.Context) ([]dto.UserLeaderboardResponse, error)
 	UpdatePhoto(ctx context.Context, id string, photoURL string) error
 }

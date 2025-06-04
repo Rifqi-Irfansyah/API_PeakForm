@@ -2,10 +2,12 @@ package service
 
 import (
 	"api-peak-form/domain"
+	"api-peak-form/dto"
 	"context"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 type userService struct {
@@ -162,6 +164,19 @@ func calculateTotalPoints(currentPoints, newPoints, streak int) int {
 	return currentPoints + (newPoints * streak)
 }
 
+func (u userService) GetAllUsersDesc(ctx context.Context) ([]dto.UserLeaderboardResponse, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	users, err := u.userRepository.GetAllUsersDesc(ctx)
+	if err != nil {
+		logrus.Errorf("Failed to get all users: %v", err)
+		return nil, fmt.Errorf("failed to get all users: %w", err)
+	}
+
+	logrus.Infof("Retrieved %d users successfully", len(users))
+	return users, nil
+}
 func (u userService) UpdatePhoto(ctx context.Context, id string, photoURL string) error {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
