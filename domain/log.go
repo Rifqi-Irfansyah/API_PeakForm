@@ -26,4 +26,5 @@ type LogService interface {
 	Create(ctx context.Context, req dto.LogRequest) error
 	FindByUserID(ctx context.Context, userID string) ([]Log, error)
 	GetUserWorkoutSummary(ctx context.Context, userID string) (dto.WorkoutSummary, error)
+	HasUserExercisedToday(ctx context.Context, userID string) (bool, error)
 }

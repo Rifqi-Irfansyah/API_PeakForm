@@ -54,6 +54,8 @@ func (a authService) Login(ctx context.Context, data dto.AuthRequest) (dto.AuthR
 		UserID: user.ID,
 		Name:   user.Name,
 		Email:  user.Email,
+		Point:  user.Point,
+		Streak: user.Streak,
 		Token:  tokenStr,
 	}, nil
 }
@@ -386,6 +388,8 @@ func (a authService) GetUserByToken(ctx context.Context, token string) (dto.Auth
 		UserID: user.ID,
 		Name:   user.Name,
 		Email:  user.Email,
+		Point:  user.Point,
+		Streak: user.Streak,
 		PhotoURL: user.PhotoURL,
 	}, nil
 }

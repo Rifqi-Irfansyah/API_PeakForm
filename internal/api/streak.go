@@ -39,7 +39,7 @@ func (ua streakApi) CheckStreak(ctx *fiber.Ctx) error {
 
 	return ctx.JSON(fiber.Map{
 		"status":  "success",
-		"streak":  streak,
+		"data":    streak,
 		"message": "Streak checked successfully",
 	})
 }
@@ -64,7 +64,7 @@ func (ua streakApi) UpdateStreak(ctx *fiber.Ctx) error {
 
 	return ctx.JSON(fiber.Map{
 		"status":  "success",
-		"streak":  streak,
+		"data":    streak,
 		"message": "Streak updated successfully",
 	})
 }
@@ -82,6 +82,6 @@ func (ua streakApi) GetLeaderboard(ctx *fiber.Ctx) error {
 	return ctx.JSON(fiber.Map{
 		"status":  "success",
 		"message": "Leaderboard retrieved successfully",
-		"data": users,
+		"data":    users,
 	})
 }
