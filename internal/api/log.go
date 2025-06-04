@@ -21,6 +21,7 @@ func NewLogApi(app *fiber.App, logService domain.LogService, userService domain.
 	app.Post("/logs/create", la.Create)
 	app.Get("/logs/:id", la.FindByUserID)
 	app.Get("/logs/:id/summary", la.GetUserWorkoutSummary)
+	app.Get("/logs/is-exercised-today/:id", la.HasUserExercisedToday)
 
 }
 
@@ -137,5 +138,30 @@ func (la logApi) GetUserWorkoutSummary(ctx *fiber.Ctx) error {
 		"status":  "success",
 		"message": "Workout summary fetched successfully",
 		"data":    summary,
+	})
+}
+
+func (la logApi) HasUserExercisedToday(ctx *fiber.Ctx) error {
+	userID := ctx.Params("id")
+	if userID == "" {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":  "error",
+			"message": "UserID is required",
+		})
+	}
+
+	hasExercised, err := la.logService.HasUserExercisedToday(ctx.Context(), userID)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Failed to check if user has exercised today",
+			"details": err.Error(),
+		})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status":  "success",
+		"message": "User exercise status fetched successfully",
+		"data":    hasExercised,
 	})
 }

@@ -122,7 +122,10 @@ func (u userService) UpdateStreak(ctx context.Context, id string) (int, error) {
 		return 0, fmt.Errorf("failed to find user with ID %s: %w", id, err)
 	}
 
-	existingUser.Streak++
+	if existingUser.Streak < 10 {
+		existingUser.Streak++
+	}
+
 	if err := u.userRepository.UpdateStreak(ctx, id, existingUser.Streak); err != nil {
 		logrus.WithError(err).Errorf("Failed to increment streak for user ID %s", id)
 		return 0, fmt.Errorf("failed to increment streak for user ID %s: %w", id, err)

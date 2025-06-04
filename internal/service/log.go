@@ -113,3 +113,27 @@ func (l logService) GetUserWorkoutSummary(ctx context.Context, userID string) (d
 		AverageSessionPerWeek: averageSessionPerWeek,
 	}, nil
 }
+
+func (l logService) HasUserExercisedToday(ctx context.Context, userID string) (bool, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	logrus.Infof("Checking if user ID %s has exercised today", userID)
+
+	today := time.Now().Truncate(24 * time.Hour)
+	logs, err := l.logRepository.FindByUserID(ctx, userID)
+	if err != nil {
+		logrus.Errorf("Failed to fetch logs for user ID %s: %v", userID, err)
+		return false, fmt.Errorf("failed to fetch logs for user ID %s: %w", userID, err)
+	}
+
+	for _, log := range logs {
+		if log.Timestamp.Truncate(24 * time.Hour).Equal(today) {
+			logrus.Infof("User ID %s has exercised today", userID)
+			return true, nil
+		}
+	}
+
+	logrus.Infof("User ID %s has not exercised today", userID)
+	return false, nil
+}
