@@ -61,6 +61,7 @@ func main() {
 	// api.NewStatsApi(app, statsService)
 	api.NewExerciseAPI(app, exerciseService)
 	api.NewStreakApi(app, userService)
+	api.NewUserApi(app, userService)
 
 	logrus.Infof("Starting server at %s:%s", cnf.Server.Host, cnf.Server.Port)
 	_ = app.Listen(cnf.Server.Host + ":" + cnf.Server.Port)
