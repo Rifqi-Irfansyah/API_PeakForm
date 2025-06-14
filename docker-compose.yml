@@ -7,8 +7,8 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./assets/exercises:/app/assets/exercises
-      - ./public/profile:/app/public/profile
+      - ./assets/exercises:/root/assets/exercises
+      - ./public/profile:/root/public/profile
     depends_on:
       - db
     env_file:
