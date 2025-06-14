@@ -25,7 +25,6 @@ func NewUserApi(app *fiber.App, userService domain.UserService) {
 func (u userApi) UploadPhoto(c *fiber.Ctx) error {
     id := c.Params("id")
 	baseURL := os.Getenv("BASE_URL")
-	fmt.Println("DEBUG BASE_URL:", baseURL)
 
 	if baseURL == "" {
 		baseURL = "http://localhost:3000"
