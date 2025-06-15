@@ -17,7 +17,7 @@ type userService struct {
 }
 
 func NewUserService(userRepository domain.UserRepository, scheduleRepository domain.ScheduleRepository, logRepository domain.LogRepository) domain.UserService {
-	return userService{
+	return &userService{
 		userRepository:     userRepository,
 		scheduleRepository: scheduleRepository,
 		logRepository:      logRepository,
@@ -180,6 +180,7 @@ func (u userService) GetAllUsersDesc(ctx context.Context) ([]dto.UserLeaderboard
 	logrus.Infof("Retrieved %d users successfully", len(users))
 	return users, nil
 }
+
 func (u userService) UpdatePhoto(ctx context.Context, id string, photoURL string) error {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
@@ -208,4 +209,18 @@ func (u userService) FindByID(ctx context.Context, id string) (domain.User, erro
 
 	logrus.Infof("User found successfully: %s", user.Email)
 	return user, nil
+}
+
+func (s *userService) GetPhotoFilename(ctx context.Context, id string) (string, error) {
+	user, err := s.userRepository.FindByID(ctx, id)
+	if err != nil {
+		return "", fmt.Errorf("failed to retrieve user: %w", err)
+	}
+
+	if user.PhotoURL == "" {
+		logrus.Errorf("Failed to find user with ID %s: %v", id, err)
+		return "", fmt.Errorf("user with ID %s has no photo URL", id)
+	}
+
+	return user.PhotoURL, nil
 }

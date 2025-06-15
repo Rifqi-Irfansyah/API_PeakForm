@@ -34,4 +34,5 @@ type UserService interface {
 	GetAllUsersDesc(ctx context.Context) ([]dto.UserLeaderboardResponse, error)
 	UpdatePhoto(ctx context.Context, id string, photoURL string) error
 	FindByID(ctx context.Context, id string) (User, error)
+	GetPhotoFilename(ctx context.Context, id string) (string, error)
 }

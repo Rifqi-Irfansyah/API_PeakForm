@@ -10,7 +10,6 @@ import (
 	"strconv"
 	"strings"
 	"log"
-	"os"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -34,10 +33,6 @@ func NewExerciseAPI(app *fiber.App, service domain.ExerciseService) *ExerciseAPI
 
 func (api *ExerciseAPI) CreateExercise(c *fiber.Ctx) error {
     ctx := context.Background()
-	baseURL := os.Getenv("BASE_URL")
-	if baseURL == "" {
-		baseURL = "http://localhost:3000"
-	}
 
     var req dto.CreateExerciseRequest
     if err := c.BodyParser(&req); err != nil {

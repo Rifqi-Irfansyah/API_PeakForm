@@ -22,16 +22,11 @@ func NewUserApi(app *fiber.App, userService domain.UserService) {
 	app.Post("/users/:id/photo", user.UploadPhoto)
 	app.Get("/users/:id/photo", user.GetPhoto)
 	app.Get("/users/:id", user.FindByID)
+	app.Static("/users/static/photo", "./public/profile")
 }
 
 func (u userApi) UploadPhoto(c *fiber.Ctx) error {
     id := c.Params("id")
-	baseURL := os.Getenv("BASE_URL")
-
-	if baseURL == "" {
-		baseURL = "http://localhost:3000"
-	}
-
     if id == "" {
         return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
             "status":  "error",
@@ -48,7 +43,7 @@ func (u userApi) UploadPhoto(c *fiber.Ctx) error {
         })
     }
 
-    ext := strings.ToLower(filepath.Ext(file.Filename)) // Normalisasi ke huruf kecil
+    ext := strings.ToLower(filepath.Ext(file.Filename))
     if ext == "" {
         return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
             "status":  "error",
@@ -65,17 +60,16 @@ func (u userApi) UploadPhoto(c *fiber.Ctx) error {
     }
 
     filename := fmt.Sprintf("%s%s", id, ext)
-    savePath := fmt.Sprintf("public/profile/%s", filename)
+    savePath := filepath.Join("public", "profile", filename)
 
-    for _, ext := range allowedExt {
-        oldPath := fmt.Sprintf("public/profile/%s%s", id, ext)
+    for _, e := range allowedExt {
+        oldPath := filepath.Join("public", "profile", fmt.Sprintf("%s%s", id, e))
         if oldPath != savePath {
             _ = os.Remove(oldPath)
         }
     }
 
-    err = c.SaveFile(file, savePath)
-    if err != nil {
+    if err := c.SaveFile(file, savePath); err != nil {
         return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
             "status":  "error",
             "message": "Failed to save file",
@@ -83,13 +77,11 @@ func (u userApi) UploadPhoto(c *fiber.Ctx) error {
         })
     }
 
-    url := fmt.Sprintf("%s/profile/%s", baseURL, filename)
-
-    err = u.userService.UpdatePhoto(c.Context(), id, url)
+    err = u.userService.UpdatePhoto(c.Context(), id, filename)
     if err != nil {
         return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
             "status":  "error",
-            "message": "Failed to update photo URL",
+            "message": "Failed to update photo",
             "details": err.Error(),
         })
     }
@@ -98,10 +90,11 @@ func (u userApi) UploadPhoto(c *fiber.Ctx) error {
         "status":  "success",
         "message": "Photo uploaded successfully",
         "data": fiber.Map{
-            "url": url,
+            "filename": filename,
         },
     })
 }
+
 
 func contains(slice []string, item string) bool {
     for _, s := range slice {
@@ -114,12 +107,6 @@ func contains(slice []string, item string) bool {
 
 func (u userApi) GetPhoto(c *fiber.Ctx) error {
 	id := c.Params("id")
-	baseURL := os.Getenv("BASE_URL")
-
-	if baseURL == "" {
-		baseURL = "http://localhost:3000"
-	}
-
 	if id == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"status":  "error",
@@ -127,23 +114,12 @@ func (u userApi) GetPhoto(c *fiber.Ctx) error {
 		})
 	}
 
-	allowedExt := []string{".jpg", ".jpeg", ".png"}
-	var photoURL string
-	found := false
-
-	for _, ext := range allowedExt {
-		filename := fmt.Sprintf("public/profile/%s%s", id, ext)
-		if _, err := os.Stat(filename); err == nil {
-			photoURL = fmt.Sprintf("%s/profile/%s%s", baseURL, id, ext)
-			found = true
-			break
-		}
-	}
-
-	if !found {
+	filename, err := u.userService.GetPhotoFilename(c.Context(), id)
+	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"status":  "error",
 			"message": "Photo not found",
+			"details": err.Error(),
 		})
 	}
 
@@ -151,7 +127,7 @@ func (u userApi) GetPhoto(c *fiber.Ctx) error {
 		"status":  "success",
 		"message": "Photo fetched successfully",
 		"data": fiber.Map{
-			"url": photoURL,
+			"filename": filename,
 		},
 	})
 }
