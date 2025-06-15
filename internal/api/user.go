@@ -2,8 +2,9 @@ package api
 
 import (
 	"api-peak-form/domain"
-	"github.com/gofiber/fiber/v2"
+	"api-peak-form/dto"
 	"fmt"
+	"github.com/gofiber/fiber/v2"
 	"os"
 	"path/filepath"
 )
@@ -19,6 +20,7 @@ func NewUserApi(app *fiber.App, userService domain.UserService) {
 
 	app.Post("/users/:id/photo", user.UploadPhoto)
 	app.Get("/users/:id/photo", user.GetPhoto)
+	app.Get("/users/:id", user.FindByID)
 }
 
 func (u userApi) UploadPhoto(c *fiber.Ctx) error {
@@ -47,7 +49,7 @@ func (u userApi) UploadPhoto(c *fiber.Ctx) error {
 	for _, ext := range allowedExt {
 		oldPath := fmt.Sprintf("public/profile/%s%s", id, ext)
 		if oldPath != savePath {
-			_ = os.Remove(oldPath) 
+			_ = os.Remove(oldPath)
 		}
 	}
 
@@ -114,6 +116,37 @@ func (u userApi) GetPhoto(c *fiber.Ctx) error {
 		"message": "Photo fetched successfully",
 		"data": fiber.Map{
 			"url": photoURL,
+		},
+	})
+}
+
+func (u userApi) FindByID(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if id == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":  "error",
+			"message": "User ID is required",
+		})
+	}
+
+	user, err := u.userService.FindByID(c.Context(), id)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Failed to find user",
+			"details": err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status":  "success",
+		"message": "User found successfully",
+		"data": dto.UserResponse{
+			Email:    user.Email,
+			Name:     user.Name,
+			Point:    user.Point,
+			Streak:   user.Streak,
+			PhotoURL: user.PhotoURL,
 		},
 	})
 }

@@ -11,8 +11,8 @@ type User struct {
 	Name      string     `gorm:"type:varchar(320);not null"`
 	Password  string     `gorm:"type:char(60);not null"`
 	Schedules []Schedule `gorm:"foreignKey:UID"`
-	Point	  int        `gorm:"default:0"`
-	Streak	  int        `gorm:"default:0"`
+	Point     int        `gorm:"default:0"`
+	Streak    int        `gorm:"default:0"`
 	PhotoURL  string     `gorm:"type:text"`
 }
 
@@ -33,4 +33,5 @@ type UserService interface {
 	UpdateStreak(ctx context.Context, id string) (int, error)
 	GetAllUsersDesc(ctx context.Context) ([]dto.UserLeaderboardResponse, error)
 	UpdatePhoto(ctx context.Context, id string, photoURL string) error
+	FindByID(ctx context.Context, id string) (User, error)
 }

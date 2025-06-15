@@ -9,3 +9,11 @@ type UserLeaderboardResponse struct {
 	Name  string `json:"name"`
 	Point int    `json:"point"`
 }
+
+type UserResponse struct {
+	Email    string `json:"email"`
+	Name     string `json:"name"`
+	Point    int    `json:"point"`
+	Streak   int    `json:"streak"`
+	PhotoURL string `json:"photo"`
+}

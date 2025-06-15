@@ -195,3 +195,17 @@ func (u userService) UpdatePhoto(ctx context.Context, id string, photoURL string
 	logrus.Infof("Photo updated successfully for user ID: %s", id)
 	return nil
 }
+
+func (u userService) FindByID(ctx context.Context, id string) (domain.User, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	user, err := u.userRepository.FindByID(ctx, id)
+	if err != nil {
+		logrus.Errorf("Failed to find user with ID %s: %v", id, err)
+		return domain.User{}, fmt.Errorf("failed to find user with ID %s: %w", id, err)
+	}
+
+	logrus.Infof("User found successfully: %s", user.Email)
+	return user, nil
+}

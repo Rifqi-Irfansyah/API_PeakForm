@@ -8,12 +8,11 @@ import (
 )
 
 type Schedule struct {
-	ID	  uint			`gorm:"primaryKey"`
-    UID   string
-	Type  ExerciseType 	`gorm:"type:exercise_type"`
-    Day   int          	`gorm:"not null;check:day >= 1 AND day <= 7"`
-
-	User  User 					`gorm:"foreignKey:UID;references:ID"`
+	ID           uint `gorm:"primaryKey"`
+	UID          string
+	Type         ExerciseType   `gorm:"type:exercise_type"`
+	Day          int            `gorm:"not null;check:day >= 1 AND day <= 7"`
+	User         User           `gorm:"foreignKey:UID;references:ID"`
 	Exercises    []Exercise     `gorm:"many2many:exercise_list"`
 	ExerciseList []ExerciseList `gorm:"foreignKey:ScheduleID;constraint:OnDelete:CASCADE;"`
 }
