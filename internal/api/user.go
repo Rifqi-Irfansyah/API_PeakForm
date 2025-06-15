@@ -3,10 +3,11 @@ package api
 import (
 	"api-peak-form/domain"
 	"api-peak-form/dto"
-	"fmt"
 	"github.com/gofiber/fiber/v2"
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type userApi struct {
@@ -24,66 +25,101 @@ func NewUserApi(app *fiber.App, userService domain.UserService) {
 }
 
 func (u userApi) UploadPhoto(c *fiber.Ctx) error {
-	id := c.Params("id")
-	if id == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":  "error",
-			"message": "User ID is required",
-		})
+    id := c.Params("id")
+	baseURL := os.Getenv("BASE_URL")
+
+	if baseURL == "" {
+		baseURL = "http://localhost:3000"
 	}
 
-	file, err := c.FormFile("photo")
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":  "error",
-			"message": "File not found",
-			"details": err.Error(),
-		})
-	}
+    if id == "" {
+        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+            "status":  "error",
+            "message": "User ID is required",
+        })
+    }
 
-	ext := filepath.Ext(file.Filename)
-	filename := fmt.Sprintf("%s%s", id, ext)
-	savePath := fmt.Sprintf("public/profile/%s", filename)
+    file, err := c.FormFile("photo")
+    if err != nil {
+        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+            "status":  "error",
+            "message": "File not found",
+            "details": err.Error(),
+        })
+    }
 
-	allowedExt := []string{".jpg", ".jpeg", ".png"}
-	for _, ext := range allowedExt {
-		oldPath := fmt.Sprintf("public/profile/%s%s", id, ext)
-		if oldPath != savePath {
-			_ = os.Remove(oldPath)
-		}
-	}
+    ext := strings.ToLower(filepath.Ext(file.Filename)) // Normalisasi ke huruf kecil
+    if ext == "" {
+        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+            "status":  "error",
+            "message": "File has no extension",
+        })
+    }
 
-	err = c.SaveFile(file, savePath)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Failed to save file",
-			"details": err.Error(),
-		})
-	}
+    allowedExt := []string{".jpg", ".jpeg", ".png"}
+    if !contains(allowedExt, ext) {
+        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+            "status":  "error",
+            "message": fmt.Sprintf("Unsupported file extension. Allowed: %v", allowedExt),
+        })
+    }
 
-	url := fmt.Sprintf("http://localhost:3000/profile/%s", filename)
+    filename := fmt.Sprintf("%s%s", id, ext)
+    savePath := fmt.Sprintf("public/profile/%s", filename)
 
-	err = u.userService.UpdatePhoto(c.Context(), id, url)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Failed to update photo URL",
-			"details": err.Error(),
-		})
-	}
+    for _, ext := range allowedExt {
+        oldPath := fmt.Sprintf("public/profile/%s%s", id, ext)
+        if oldPath != savePath {
+            _ = os.Remove(oldPath)
+        }
+    }
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"status":  "success",
-		"message": "Photo uploaded successfully",
-		"data": fiber.Map{
-			"url": url,
-		},
-	})
+    err = c.SaveFile(file, savePath)
+    if err != nil {
+        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+            "status":  "error",
+            "message": "Failed to save file",
+            "details": err.Error(),
+        })
+    }
+
+    url := fmt.Sprintf("%s/profile/%s", baseURL, filename)
+
+    err = u.userService.UpdatePhoto(c.Context(), id, url)
+    if err != nil {
+        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+            "status":  "error",
+            "message": "Failed to update photo URL",
+            "details": err.Error(),
+        })
+    }
+
+    return c.Status(fiber.StatusOK).JSON(fiber.Map{
+        "status":  "success",
+        "message": "Photo uploaded successfully",
+        "data": fiber.Map{
+            "url": url,
+        },
+    })
+}
+
+func contains(slice []string, item string) bool {
+    for _, s := range slice {
+        if s == item {
+            return true
+        }
+    }
+    return false
 }
 
 func (u userApi) GetPhoto(c *fiber.Ctx) error {
 	id := c.Params("id")
+	baseURL := os.Getenv("BASE_URL")
+
+	if baseURL == "" {
+		baseURL = "http://localhost:3000"
+	}
+
 	if id == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"status":  "error",
@@ -98,7 +134,7 @@ func (u userApi) GetPhoto(c *fiber.Ctx) error {
 	for _, ext := range allowedExt {
 		filename := fmt.Sprintf("public/profile/%s%s", id, ext)
 		if _, err := os.Stat(filename); err == nil {
-			photoURL = fmt.Sprintf("http://localhost:3000/profile/%s%s", id, ext)
+			photoURL = fmt.Sprintf("%s/profile/%s%s", baseURL, id, ext)
 			found = true
 			break
 		}

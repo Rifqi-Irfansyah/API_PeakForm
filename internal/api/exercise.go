@@ -5,12 +5,12 @@ import (
 	"api-peak-form/dto"
 	"api-peak-form/internal/util"
 	"context"
-	"fmt"
 	"net/http"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"log"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -32,10 +32,12 @@ func NewExerciseAPI(app *fiber.App, service domain.ExerciseService) *ExerciseAPI
 	return api
 }
 
-const baseURL = "http://localhost:3000"
-
 func (api *ExerciseAPI) CreateExercise(c *fiber.Ctx) error {
     ctx := context.Background()
+	baseURL := os.Getenv("BASE_URL")
+	if baseURL == "" {
+		baseURL = "http://localhost:3000"
+	}
 
     var req dto.CreateExerciseRequest
     if err := c.BodyParser(&req); err != nil {
@@ -47,32 +49,32 @@ func (api *ExerciseAPI) CreateExercise(c *fiber.Ctx) error {
     }
 
     file, err := c.FormFile("image")
-    if err == nil {
-        log.Printf("File uploaded: %s, Size: %d bytes", file.Filename, file.Size)
+	if err == nil {
+		log.Printf("File uploaded: %s, Size: %d bytes", file.Filename, file.Size)
 
-        ext := filepath.Ext(file.Filename)
-        if strings.ToLower(ext) != ".svg" {
-            log.Printf("Invalid file format: %s", ext)
-            return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-                "status":  "error",
-                "message": "Invalid file format. Only SVG files are allowed",
-            })
-        }
+		ext := filepath.Ext(file.Filename)
+		if strings.ToLower(ext) != ".svg" {
+			log.Printf("Invalid file format: %s", ext)
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"status":  "error",
+				"message": "Invalid file format. Only SVG files are allowed",
+			})
+		}
 
-        savePath := filepath.Join("assets", "exercises", file.Filename)
-        if err := c.SaveFile(file, savePath); err != nil {
-            log.Printf("Failed to save file: %v", err)
-            return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-                "status":  "error",
-                "message": "Failed to save file",
-            })
-        }
+		savePath := filepath.Join("assets", "exercises", file.Filename)
+		if err := c.SaveFile(file, savePath); err != nil {
+			log.Printf("Failed to save file: %v", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"status":  "error",
+				"message": "Failed to save file",
+			})
+		}
 
-        req.Image = fmt.Sprintf("%s/static/exercises/%s", baseURL, file.Filename)
-        log.Printf("File saved, req.Image set to: %s", req.Image)
-    } else {
-        log.Printf("No file uploaded or error reading file: %v", err)
-    }
+		req.Image = file.Filename
+		log.Printf("File saved, req.Image set to: %s", req.Image)
+	} else {
+		log.Printf("No file uploaded or error reading file: %v", err)
+	}
 
     log.Printf("Request before validation: %+v", req)
 

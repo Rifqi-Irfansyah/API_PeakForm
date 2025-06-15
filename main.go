@@ -19,7 +19,7 @@ func main() {
 	cnf := config.Get()
 	dbConnection := connection.GetDatabase(cnf.Database)
 
-	app := fiber.New()
+	app := fiber.New(fiber.Config{BodyLimit: 20 * 1024 * 1024})
 	app.Static("/", "./assets")
 	app.Static("/profile", "./public/profile")
 
