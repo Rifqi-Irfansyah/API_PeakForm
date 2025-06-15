@@ -99,6 +99,7 @@ func (u userRepository) GetAllUsersDesc(ctx context.Context) ([]dto.UserLeaderbo
 	var userResponses []dto.UserLeaderboardResponse
 	for _, user := range users {
 		userResponses = append(userResponses, dto.UserLeaderboardResponse{
+			PhotoURL: user.PhotoURL,
 			Name:  user.Name,
 			Point: user.Point,
 		})
