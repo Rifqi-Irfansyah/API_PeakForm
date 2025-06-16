@@ -6,6 +6,7 @@ type UserStreakRequest struct {
 }
 
 type UserLeaderboardResponse struct {
+	PhotoURL string `json:"photo"`
 	Name  string `json:"name"`
 	Point int    `json:"point"`
 }
