@@ -6,13 +6,14 @@ type AuthRequest struct {
 }
 
 type AuthResponse struct {
-	UserID string `json:"user_id"`
-	Name   string `json:"name"`
-	Email  string `json:"email"`
-	Point  int    `json:"point"`
-	Streak int    `json:"streak"`
-	PhotoURL  string `json:"photo"`
-	Token  string `json:"token"`
+	UserID   string `json:"user_id"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Point    int    `json:"point"`
+	Streak   int    `json:"streak"`
+	PhotoURL string `json:"photo"`
+	Rank     int    `json:"rank"`
+	Token    string `json:"token"`
 }
 
 type RegisterRequest struct {

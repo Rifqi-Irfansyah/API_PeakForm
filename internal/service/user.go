@@ -197,18 +197,33 @@ func (u userService) UpdatePhoto(ctx context.Context, id string, photoURL string
 	return nil
 }
 
-func (u userService) FindByID(ctx context.Context, id string) (domain.User, error) {
+func (u userService) FindByID(ctx context.Context, id string) (dto.UserResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	user, err := u.userRepository.FindByID(ctx, id)
 	if err != nil {
 		logrus.Errorf("Failed to find user with ID %s: %v", id, err)
-		return domain.User{}, fmt.Errorf("failed to find user with ID %s: %w", id, err)
+		return dto.UserResponse{}, fmt.Errorf("failed to find user with ID %s: %w", id, err)
 	}
 
-	logrus.Infof("User found successfully: %s", user.Email)
-	return user, nil
+	rank, err := u.userRepository.GetUserRank(ctx, id)
+	if err != nil {
+		logrus.Errorf("Failed to get rank for user ID %s: %v", id, err)
+		return dto.UserResponse{}, fmt.Errorf("failed to get rank for user ID %s: %w", id, err)
+	}
+
+	response := dto.UserResponse{
+		Email:    user.Email,
+		Name:     user.Name,
+		Point:    user.Point,
+		Streak:   user.Streak,
+		PhotoURL: user.PhotoURL,
+		Rank:     rank,
+	}
+
+	logrus.Infof("User found successfully with ID: %s", id)
+	return response, nil
 }
 
 func (s *userService) GetPhotoFilename(ctx context.Context, id string) (string, error) {
