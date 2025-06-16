@@ -17,4 +17,5 @@ type UserResponse struct {
 	Point    int    `json:"point"`
 	Streak   int    `json:"streak"`
 	PhotoURL string `json:"photo"`
+	Rank     int    `json:"rank"`
 }

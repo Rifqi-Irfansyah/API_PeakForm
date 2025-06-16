@@ -114,3 +114,18 @@ func (u *userRepository) UpdatePhoto(ctx context.Context, id string, photoURL st
 		Where("id = ?", id).
 		Update("photo_url", photoURL).Error
 }
+
+func (u *userRepository) GetUserRank(ctx context.Context, id string) (int, error) {
+	var rank int
+	err := u.db.WithContext(ctx).
+		Model(&domain.User{}).
+		Where("id = ?", id).
+		Select("rank() OVER (ORDER BY point DESC)").
+		Scan(&rank).Error
+	if err != nil {
+		logrus.Errorf("Error retrieving user rank for ID %s: %v", id, err)
+		return 0, err
+	}
+	logrus.Infof("User rank retrieved successfully for ID %s: %d", id, rank)
+	return rank, nil
+}

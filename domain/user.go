@@ -25,6 +25,7 @@ type UserRepository interface {
 	UpdateStreak(ctx context.Context, id string, streak int) error
 	GetAllUsersDesc(ctx context.Context) ([]dto.UserLeaderboardResponse, error)
 	UpdatePhoto(ctx context.Context, id string, photoURL string) error
+	GetUserRank(ctx context.Context, id string) (int, error)
 }
 
 type UserService interface {
@@ -33,6 +34,6 @@ type UserService interface {
 	UpdateStreak(ctx context.Context, id string) (int, error)
 	GetAllUsersDesc(ctx context.Context) ([]dto.UserLeaderboardResponse, error)
 	UpdatePhoto(ctx context.Context, id string, photoURL string) error
-	FindByID(ctx context.Context, id string) (User, error)
+	FindByID(ctx context.Context, id string) (dto.UserResponse, error)
 	GetPhotoFilename(ctx context.Context, id string) (string, error)
 }

@@ -49,14 +49,18 @@ func (a authService) Login(ctx context.Context, data dto.AuthRequest) (dto.AuthR
 		return dto.AuthResponse{}, errors.New("failed to generate token")
 	}
 
+	rank, err := a.userRepository.GetUserRank(ctx, user.ID)
+
 	logrus.Infof("Login successful for user: %s", data.Email)
 	return dto.AuthResponse{
-		UserID: user.ID,
-		Name:   user.Name,
-		Email:  user.Email,
-		Point:  user.Point,
-		Streak: user.Streak,
-		Token:  tokenStr,
+		UserID:   user.ID,
+		Name:     user.Name,
+		Email:    user.Email,
+		Point:    user.Point,
+		Streak:   user.Streak,
+		PhotoURL: user.PhotoURL,
+		Rank:     rank,
+		Token:    tokenStr,
 	}, nil
 }
 
@@ -383,13 +387,20 @@ func (a authService) GetUserByToken(ctx context.Context, token string) (dto.Auth
 		return dto.AuthResponse{}, errors.New("failed to find user")
 	}
 
+	rank, err := a.userRepository.GetUserRank(ctx, user.ID)
+	if err != nil {
+		logrus.Errorf("Failed to get rank for user ID %s: %v", user.ID, err)
+		return dto.AuthResponse{}, errors.New("failed to get user rank")
+	}
+
 	logrus.Infof("User retrieved successfully from token: %s", userID)
 	return dto.AuthResponse{
-		UserID: user.ID,
-		Name:   user.Name,
-		Email:  user.Email,
-		Point:  user.Point,
-		Streak: user.Streak,
+		UserID:   user.ID,
+		Name:     user.Name,
+		Email:    user.Email,
+		Point:    user.Point,
+		Streak:   user.Streak,
+		Rank:     rank,
 		PhotoURL: user.PhotoURL,
 	}, nil
 }
