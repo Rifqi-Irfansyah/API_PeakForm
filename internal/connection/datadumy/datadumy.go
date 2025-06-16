@@ -43,21 +43,21 @@ func AddDefaultUser(db *gorm.DB) {
 
 	user3 := domain.User{
 		ID:       "115dd593-1f58-454f-bd25-318cfd2b4830",
-		Email:    "user1@example.com",
-		Name:     "User 1",
+		Email:    "rifqi1@example.com",
+		Name:     "Rifqi",
 		Password: string(hashedPassword),
-		Point: 500,
-		Streak:  1,
+		Point: 2000000,
+		Streak:  6,
 		PhotoURL: "115dd593-1f58-454f-bd25-318cfd2b4830.jpg",
 	}
 
 	user4 := domain.User{
 		ID:       "115dd593-1f58-454f-bd25-318cfd2b4840",
-		Email:    "user2@example.com",
-		Name:     "User 2",
+		Email:    "fachry@example.com",
+		Name:     "Fachry",
 		Password: string(hashedPassword),
-		Point: 300,
-		Streak:  1,
+		Point: 500000,
+		Streak:  4,
 		PhotoURL: "115dd593-1f58-454f-bd25-318cfd2b4840.jpg",
 	}
 
